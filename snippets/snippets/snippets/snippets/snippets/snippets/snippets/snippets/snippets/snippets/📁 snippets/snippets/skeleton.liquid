@@ -1,0 +1,33 @@
+{% comment %}
+  SKELETON COMPONENT (Shopify Liquid version)
+  -------------------------------------------
+  Animated loading placeholder for images, text, or cards.
+
+  Usage:
+  {% render 'skeleton', class: 'w-32 h-6 rounded-md' %}
+{% endcomment %}
+
+{% assign class = class | default: '' %}
+
+<style>
+  @keyframes skeleton-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+  }
+
+  .skeleton {
+    background-color: rgba(0, 0, 0, 0.08);
+    border-radius: 0.375rem;
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+  }
+
+  .dark .skeleton {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+</style>
+
+<div
+  data-slot="skeleton"
+  class="skeleton {{ class }}"
+></div>
