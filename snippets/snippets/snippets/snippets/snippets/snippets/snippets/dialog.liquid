@@ -1,0 +1,141 @@
+{% comment %}
+  DIALOG
+  ------
+  Shopify Liquid equivalent of the Radix Dialog component.
+  This snippet creates a modal dialog box with an overlay and close button.
+
+  Usage:
+    {% render 'dialog',
+      id: 'newsletter-popup',
+      trigger_label: 'Open Dialog',
+      title: 'Join Our Newsletter',
+      description: 'Get updates about our latest drops and collaborations.',
+      content: '<p>Subscribe to receive exclusive updates.</p>'
+    %}
+{% endcomment %}
+
+{% assign dialog_id = id | default: 'dialog-' | append: section.id %}
+{% assign trigger_label = trigger_label | default: 'Open Dialog' %}
+{% assign dialog_title = title | default: 'Dialog Title' %}
+{% assign dialog_description = description | default: '' %}
+{% assign dialog_content = content | default: '' %}
+
+<style>
+  .dialog-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+  }
+  .dialog-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .dialog-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    max-width: 480px;
+    width: calc(100% - 2rem);
+    padding: 24px;
+    z-index: 51;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: all .3s ease;
+  }
+  .dialog-content.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .dialog-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity .2s ease;
+  }
+  .dialog-close:hover {
+    opacity: 1;
+  }
+  .dialog-header {
+    margin-bottom: 12px;
+  }
+  .dialog-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .dialog-description {
+    font-size: 14px;
+    color: rgba(0,0,0,0.6);
+  }
+</style>
+
+<div class="dialog-wrapper" id="{{ dialog_id }}">
+  <button class="dialog-trigger" type="button" data-trigger>
+    {{ trigger_label }}
+  </button>
+
+  <div class="dialog-overlay" data-overlay></div>
+
+  <div class="dialog-content" data-content role="dialog" aria-modal="true" aria-labelledby="{{ dialog_id }}-title">
+    <button class="dialog-close" type="button" data-close aria-label="Close dialog">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <div class="dialog-header">
+      <div class="dialog-title" id="{{ dialog_id }}-title">{{ dialog_title }}</div>
+      {% if dialog_description != blank %}
+        <div class="dialog-description">{{ dialog_description }}</div>
+      {% endif %}
+    </div>
+
+    <div class="dialog-body">
+      {{ dialog_content }}
+    </div>
+
+    <div class="dialog-footer" style="margin-top:16px;text-align:right;">
+      <button class="dialog-close" type="button" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('{{ dialog_id }}');
+    const trigger = wrapper.querySelector('[data-trigger]');
+    const overlay = wrapper.querySelector('[data-overlay]');
+    const content = wrapper.querySelector('[data-content]');
+    const closes = wrapper.querySelectorAll('[data-close]');
+
+    function openDialog() {
+      overlay.classList.add('active');
+      content.classList.add('active');
+    }
+
+    function closeDialog() {
+      overlay.classList.remove('active');
+      content.classList.remove('active');
+    }
+
+    trigger.addEventListener('click', openDialog);
+    overlay.addEventListener('click', closeDialog);
+    closes.forEach(btn => btn.addEventListener('click', closeDialog));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDialog();
+    });
+  });
+</script>
