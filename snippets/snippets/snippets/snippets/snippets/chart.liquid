@@ -1,0 +1,76 @@
+{% comment %}
+  CHART
+  -----
+  Simplified Liquid equivalent of the React + Recharts chart container.
+  Renders a responsive bar/line chart using Chart.js (browser native, no React).
+  Plug-and-play for Shopify.
+
+  Usage:
+    {% render 'chart',
+      type: 'bar',
+      labels: '["Jan","Feb","Mar","Apr","May"]',
+      values: '[120,90,140,80,160]',
+      color: '#111',
+      title: 'Sales overview'
+    %}
+{% endcomment %}
+
+{% assign chart_type = type | default: 'bar' %}
+{% assign chart_labels = labels | default: '["A","B","C"]' %}
+{% assign chart_values = values | default: '[10,20,30]' %}
+{% assign chart_color = color | default: '#111' %}
+{% assign chart_title = title | default: 'Chart' %}
+{% assign chart_id = 'chart-' | append: id | default: 'chart-' | append: section.id %}
+
+<div class="chart-container" style="width:100%;max-width:800px;margin:auto;">
+  <canvas id="{{ chart_id }}"></canvas>
+</div>
+
+<style>
+  .chart-container canvas {
+    width: 100% !important;
+    height: auto !important;
+    border: 1px solid rgba(0,0,0,.05);
+    border-radius: 8px;
+    background: #fff;
+    padding: 12px;
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  (function(){
+    const ctx = document.getElementById('{{ chart_id }}');
+    if(!ctx) return;
+
+    const config = {
+      type: '{{ chart_type }}',
+      data: {
+        labels: {{ chart_labels }},
+        datasets: [{
+          label: '{{ chart_title }}',
+          data: {{ chart_values }},
+          backgroundColor: '{{ chart_color }}',
+          borderColor: '{{ chart_color }}',
+          borderWidth: 2,
+          tension: 0.3,
+          fill: true,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: { grid: { color: 'rgba(0,0,0,.05)' } },
+          y: { grid: { color: 'rgba(0,0,0,.05)' }, beginAtZero: true }
+        },
+        plugins: {
+          legend: { display: true, labels: { boxWidth: 12, boxHeight: 12 } },
+          tooltip: { backgroundColor: '#fff', borderColor: '#ddd', borderWidth: 1, titleColor: '#111', bodyColor: '#111' }
+        }
+      }
+    };
+
+    new Chart(ctx, config);
+  })();
+</script>
