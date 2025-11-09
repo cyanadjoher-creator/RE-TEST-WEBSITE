@@ -1,0 +1,133 @@
+{% comment %}
+  TABLE COMPONENT (Shopify Liquid version)
+  ----------------------------------------
+  Clean, responsive, semantic table layout.
+  Uses Tailwind-style utility classes and
+  mirrors your React component structure.
+
+  Usage:
+  {% render 'table', 
+    headers: "Name, Email, Orders", 
+    rows: customers 
+  %}
+
+  Example data structure (in JSON or Liquid object):
+  customers = [
+    { "Name": "Alice", "Email": "alice@example.com", "Orders": 5 },
+    { "Name": "Bob", "Email": "bob@example.com", "Orders": 3 }
+  ]
+{% endcomment %}
+
+{% assign headers = headers | split: ',' %}
+{% assign class = class | default: '' %}
+{% assign caption = caption | default: '' %}
+
+<style>
+  .table-container {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .table thead tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .table tfoot {
+    background-color: rgba(0, 0, 0, 0.03);
+    font-weight: 500;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .table tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    transition: background-color 0.2s ease;
+  }
+
+  .table tr:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .table th {
+    color: var(--color-foreground, #111);
+    font-weight: 600;
+  }
+
+  .table caption {
+    margin-top: 1rem;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.875rem;
+    text-align: left;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .table th,
+    .table td {
+      color: rgba(255, 255, 255, 0.9);
+    }
+    .table tr:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+</style>
+
+<div class="table-container {{ class }}" data-slot="table-container">
+  <table class="table" data-slot="table">
+    {% if headers %}
+      <thead data-slot="table-header">
+        <tr>
+          {% for header in headers %}
+            <th data-slot="table-head">{{ header | strip }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+    {% endif %}
+
+    <tbody data-slot="table-body">
+      {% if rows %}
+        {% for row in rows %}
+          <tr data-slot="table-row">
+            {% for header in headers %}
+              {% assign key = header | strip %}
+              <td data-slot="table-cell">
+                {{ row[key] }}
+              </td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="{{ headers.size }}" style="text-align:center; padding:1rem; opacity:0.7;">
+            No data available.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+
+    {% if footer %}
+      <tfoot data-slot="table-footer">
+        <tr>
+          <td colspan="{{ headers.size }}">{{ footer }}</td>
+        </tr>
+      </tfoot>
+    {% endif %}
+  </table>
+
+  {% if caption != '' %}
+    <caption data-slot="table-caption">{{ caption }}</caption>
+  {% endif %}
+</div>
