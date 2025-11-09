@@ -1,0 +1,96 @@
+{% comment %}
+  ACCORDION
+  ----------
+  Converted from React (Radix UI + Lucide) to pure Liquid + HTML + CSS.
+  Works natively on Shopify, no JS framework needed.
+
+  Usage:
+    {% render 'accordion',
+      items: [
+        { title: 'Section 1', content: 'Content for section 1' },
+        { title: 'Section 2', content: 'Content for section 2' },
+        { title: 'Section 3', content: 'Content for section 3' }
+      ]
+    %}
+{% endcomment %}
+
+<style>
+  .accordion {
+    border-top: 1px solid rgba(0,0,0,.1);
+    font-family: inherit;
+  }
+  .accordion-item {
+    border-bottom: 1px solid rgba(0,0,0,.1);
+  }
+  .accordion-trigger {
+    width: 100%;
+    text-align: left;
+    padding: 1rem 0;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: .02em;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: color .2s ease;
+  }
+  .accordion-trigger:hover {
+    text-decoration: underline;
+  }
+  .accordion-icon {
+    transition: transform .25s ease;
+    width: 16px;
+    height: 16px;
+    opacity: .6;
+  }
+  .accordion-trigger.active .accordion-icon {
+    transform: rotate(180deg);
+    opacity: 1;
+  }
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .3s ease;
+  }
+  .accordion-content.open {
+    max-height: 400px;
+  }
+  .accordion-content-inner {
+    padding-bottom: 1rem;
+    font-size: 14px;
+    line-height: 1.6;
+    opacity: .85;
+  }
+</style>
+
+<div class="accordion" role="tablist">
+  {% for item in items %}
+    <div class="accordion-item">
+      <button
+        class="accordion-trigger"
+        type="button"
+        aria-expanded="false"
+        onclick="
+          const content = this.nextElementSibling;
+          const open = content.classList.contains('open');
+          document.querySelectorAll('.accordion-content').forEach(c=>c.classList.remove('open'));
+          document.querySelectorAll('.accordion-trigger').forEach(t=>t.classList.remove('active'));
+          if(!open){ content.classList.add('open'); this.classList.add('active'); }
+        "
+      >
+        <span>{{ item.title }}</span>
+        <svg class="accordion-icon" viewBox='0 0 24 24' stroke='currentColor' fill='none' stroke-width='2'>
+          <path d='M6 9l6 6 6-6'/>
+        </svg>
+      </button>
+      <div class="accordion-content">
+        <div class="accordion-content-inner">
+          {{ item.content }}
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
