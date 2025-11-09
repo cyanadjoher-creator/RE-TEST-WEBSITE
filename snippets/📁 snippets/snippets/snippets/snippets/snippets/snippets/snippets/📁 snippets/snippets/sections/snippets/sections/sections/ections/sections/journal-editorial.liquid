@@ -1,0 +1,172 @@
+{% schema %}
+{
+  "name": "Journal — Editorial",
+  "settings": [
+    { "type": "blog", "id": "blog", "label": "Blog source" },
+    { "type": "image_picker", "id": "hero_image", "label": "Image hero (optionnelle)" },
+    { "type": "text", "id": "hero_heading", "label": "Titre hero", "default": "Journal" },
+    { "type": "text", "id": "hero_subheading", "label": "Sous-titre hero", "default": "Stories, insights, and creative collaborations" },
+    { "type": "checkbox", "id": "show_featured", "label": "Afficher un article à la une", "default": true },
+    { "type": "range", "id": "per_page", "label": "Articles par page", "default": 6, "min": 3, "max": 24, "step": 3 }
+  ],
+  "presets": [{ "name": "Journal — Editorial" }]
+}
+{% endschema %}
+
+{% liquid
+  assign selected_blog = section.settings.blog
+  assign blog_obj = blank
+  if selected_blog != blank
+    assign blog_obj = blogs[selected_blog]
+  endif
+%}
+
+<div class="min-h-screen pt-16 bg-white">
+  {%- comment -%} HERO {%- endcomment -%}
+  <section class="relative h-[60vh] bg-gray-100 mb-16">
+    {% liquid
+      assign hero_img = section.settings.hero_image
+      if hero_img
+        render 'image', image: hero_img, class: 'w-full h-full object-cover', sizes: '(min-width: 1024px) 100vw, 100vw'
+      else
+        if blog_obj.articles_count > 0 and blog_obj.articles.first.image
+          render 'image', image: blog_obj.articles.first.image, class: 'w-full h-full object-cover', sizes: '(min-width: 1024px) 100vw, 100vw'
+        else
+          echo '<div class="w-full h-full bg-black/5"></div>'
+        endif
+      endif
+    %}
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="text-center text-white">
+        <h1 class="tracking-tight" style="font-size:56px;font-weight:300;letter-spacing:-0.02em">
+          {{ section.settings.hero_heading | escape }}
+        </h1>
+        {% if section.settings.hero_subheading != blank %}
+          <p class="mt-4 opacity-90" style="font-size:15px;letter-spacing:0.05em">
+            {{ section.settings.hero_subheading | escape }}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <div class="max-w-[1440px] mx-auto px-6">
+    {%- if blog_obj == blank -%}
+      <p class="opacity-60">Sélectionne un blog dans la section.</p>
+    {%- else -%}
+
+      {%- comment -%} CATÉGORIES (tags du blog) {%- endcomment -%}
+      <div class="flex flex-wrap gap-4 mb-12 pb-8 border-b border-black/10">
+        <a href="{{ blog_obj.url }}" class="uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity" style="font-size:11px;letter-spacing:0.15em">All</a>
+        {%- for tag in blog_obj.all_tags -%}
+          {%- assign tag_url = blog_obj.url | append: '/tagged/' | append: tag | handleize -%}
+          <a href="{{ tag_url }}" class="uppercase tracking-wider opacity-40 hover:opacity-100 transition-opacity" style="font-size:11px;letter-spacing:0.15em">
+            {{ tag }}
+          </a>
+        {%- endfor -%}
+      </div>
+
+      {%- paginate blog_obj.articles by section.settings.per_page -%}
+        {%- assign has_articles = paginate.items_count > 0 -%}
+
+        {%- if has_articles -%}
+          {%- comment -%} ARTICLE À LA UNE (premier de la page, si activé et première page) {%- endcomment -%}
+          {%- if section.settings.show_featured and paginate.current_page == 1 -%}
+            {%- assign featured = blog_obj.articles.first -%}
+            <div class="grid md:grid-cols-2 gap-12 mb-24 cursor-pointer group">
+              <a href="{{ featured.url }}" class="aspect-[4/5] bg-gray-100 overflow-hidden block">
+                {% if featured.image %}
+                  {{ featured.image | image_url: width: 1600 | image_tag:
+                      class: 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105',
+                      loading: 'eager',
+                      alt: featured.title | escape }}
+                {% else %}
+                  <div class="w-full h-full bg-black/5"></div>
+                {% endif %}
+              </a>
+              <div class="flex flex-col justify-center">
+                <div class="uppercase tracking-wider mb-4 opacity-40" style="font-size:10px;letter-spacing:0.15em">
+                  {%- if featured.tags.size > 0 -%}{{ featured.tags.first }} — {%- endif -%}
+                  {{ featured.published_at | date: "%B %Y" }}
+                </div>
+                <a href="{{ featured.url }}">
+                  <h2 class="mb-6 tracking-tight group-hover:opacity-60 transition-opacity" style="font-size:42px;font-weight:300;letter-spacing:-0.01em">
+                    {{ featured.title }}
+                  </h2>
+                </a>
+                {% if featured.excerpt != blank %}
+                  <p class="mb-8 opacity-70 max-w-lg" style="font-size:15px;line-height:1.8">
+                    {{ featured.excerpt | strip_html | truncatewords: 36 }}
+                  </p>
+                {% endif %}
+                <div>
+                  <a href="{{ featured.url }}" class="uppercase tracking-wider hover:opacity-60 transition-opacity" style="font-size:11px;letter-spacing:0.15em">
+                    Read Article →
+                  </a>
+                </div>
+              </div>
+            </div>
+          {%- endif -%}
+
+          {%- comment -%}
+            GRILLE : si "featured" affiché et page 1, on saute le premier.
+          {%- endcomment -%}
+          <div class="grid md:grid-cols-3 gap-x-6 gap-y-16 mb-16">
+            {%- for article in blog_obj.articles -%}
+              {%- if section.settings.show_featured and paginate.current_page == 1 and forloop.first -%}
+                {%- continue -%}
+              {%- endif -%}
+              <div class="group cursor-pointer">
+                <a href="{{ article.url }}" class="block aspect-[4/5] bg-gray-100 mb-4 overflow-hidden">
+                  {% if article.image %}
+                    {{ article.image | image_url: width: 1000 | image_tag:
+                        class: 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105',
+                        loading: 'lazy',
+                        alt: article.title | escape }}
+                  {% else %}
+                    <div class="w-full h-full bg-black/5"></div>
+                  {% endif %}
+                </a>
+                <div class="uppercase tracking-wider mb-2 opacity-40" style="font-size:10px;letter-spacing:0.15em">
+                  {%- if article.tags.size > 0 -%}{{ article.tags.first }} — {%- endif -%}
+                  {{ article.published_at | date: "%B %Y" }}
+                </div>
+                <a href="{{ article.url }}">
+                  <h3 class="mb-3 group-hover:opacity-60 transition-opacity" style="font-size:18px;font-weight:300">
+                    {{ article.title }}
+                  </h3>
+                </a>
+                {% if article.excerpt != blank %}
+                  <p class="opacity-70 mb-4" style="font-size:13px;line-height:1.7">
+                    {{ article.excerpt | strip_html | truncatewords: 26 }}
+                  </p>
+                {% endif %}
+                <a href="{{ article.url }}" class="uppercase tracking-wider opacity-60 hover:opacity-100 transition-opacity" style="font-size:10px;letter-spacing:0.15em">
+                  Read More →
+                </a>
+              </div>
+            {%- endfor -%}
+          </div>
+
+          {%- if paginate.pages > 1 -%}
+            <div class="text-center mb-24">
+              {%- if paginate.next -%}
+                <a href="{{ paginate.next.url }}" class="px-8 py-3 border border-black hover:bg-black hover:text-white transition-colors uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">
+                  Load More Articles
+                </a>
+              {%- else -%}
+                <span class="px-8 py-3 border border-black/30 text-black/50 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">
+                  No more articles
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+
+        {%- else -%}
+          <p class="opacity-60">Aucun article pour le moment.</p>
+        {%- endif -%}
+      {%- endpaginate -%}
+
+    {%- endif -%}
+  </div>
+</div>
