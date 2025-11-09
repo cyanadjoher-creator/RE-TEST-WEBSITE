@@ -1,0 +1,83 @@
+{% comment %}
+  COLLAPSIBLE
+  -----------
+  Liquid version of the Radix Collapsible component.
+  Expand/collapse content with a toggle button.
+
+  Usage:
+    {% render 'collapsible',
+      id: 'faq1',
+      title: 'What is your return policy?',
+      content: 'You can return any item within 14 days of purchase.'
+    %}
+{% endcomment %}
+
+{% assign collapsible_id = id | default: 'collapsible-' | append: section.id %}
+{% assign collapsible_title = title | default: 'Collapsible Title' %}
+{% assign collapsible_content = content | default: 'Collapsible content goes here.' %}
+
+<style>
+  .collapsible {
+    border-bottom: 1px solid rgba(0,0,0,.1);
+    padding: 8px 0;
+  }
+  .collapsible-trigger {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #111;
+    text-align: left;
+    transition: color .2s ease;
+  }
+  .collapsible-trigger:hover {
+    color: #000;
+  }
+  .collapsible-icon {
+    transition: transform .3s ease;
+  }
+  .collapsible-content {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .3s ease;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(0,0,0,0.7);
+  }
+  .collapsible.open .collapsible-content {
+    max-height: 400px;
+  }
+  .collapsible.open .collapsible-icon {
+    transform: rotate(180deg);
+  }
+</style>
+
+<div class="collapsible" id="{{ collapsible_id }}">
+  <button class="collapsible-trigger" type="button" aria-expanded="false" aria-controls="{{ collapsible_id }}-content">
+    <span>{{ collapsible_title }}</span>
+    <svg class="collapsible-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+    </svg>
+  </button>
+  <div class="collapsible-content" id="{{ collapsible_id }}-content">
+    <div style="padding: 8px 0;">{{ collapsible_content }}</div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('click', function(e){
+    if(e.target.closest('.collapsible-trigger')){
+      const trigger = e.target.closest('.collapsible-trigger');
+      const parent = trigger.closest('.collapsible');
+      const content = parent.querySelector('.collapsible-content');
+      const expanded = parent.classList.toggle('open');
+      trigger.setAttribute('aria-expanded', expanded);
+    }
+  });
+</script>
