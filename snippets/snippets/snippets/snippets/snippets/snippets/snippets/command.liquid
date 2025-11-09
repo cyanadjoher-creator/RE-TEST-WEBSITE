@@ -1,0 +1,125 @@
+{% comment %}
+  COMMAND PALETTE
+  ---------------
+  Shopify Liquid version of the React Command Palette component.
+  Provides a search interface for quick navigation or command execution.
+  Uses a native input and list logic — no JS dependencies.
+
+  Usage:
+    {% render 'command',
+      id: 'search-commands',
+      placeholder: 'Search for a command...',
+      empty_message: 'No results found',
+      items: '[{"title":"Home","shortcut":"⌘H"},{"title":"Orders","shortcut":"⌘O"}]'
+    %}
+{% endcomment %}
+
+{% assign command_id = id | default: 'command-' | append: section.id %}
+{% assign placeholder_text = placeholder | default: 'Search...' %}
+{% assign empty_text = empty_message | default: 'No results found.' %}
+{% assign items_json = items | default: '[]' | parse_json %}
+
+<style>
+  .command-container {
+    max-width: 600px;
+    margin: 0 auto;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+  .command-input-wrapper {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 8px 12px;
+  }
+  .command-input-wrapper svg {
+    width: 16px;
+    height: 16px;
+    opacity: 0.6;
+    margin-right: 8px;
+  }
+  .command-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    outline: none;
+    padding: 4px 0;
+  }
+  .command-list {
+    max-height: 250px;
+    overflow-y: auto;
+  }
+  .command-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .command-item:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .command-shortcut {
+    font-size: 12px;
+    color: rgba(0,0,0,0.5);
+    letter-spacing: 0.05em;
+  }
+  .command-empty {
+    text-align: center;
+    padding: 16px;
+    color: rgba(0,0,0,0.5);
+    font-size: 14px;
+  }
+</style>
+
+<div class="command-container" id="{{ command_id }}">
+  <div class="command-input-wrapper">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1010.5 18.5a7.5 7.5 0 006.15-3.85z"/>
+    </svg>
+    <input
+      type="text"
+      class="command-input"
+      placeholder="{{ placeholder_text }}"
+      oninput="filterCommands('{{ command_id }}', this.value)"
+    >
+  </div>
+  <div class="command-list">
+    {% for item in items_json %}
+      <div class="command-item" data-command-title="{{ item.title | downcase }}">
+        <span>{{ item.title }}</span>
+        {% if item.shortcut %}
+          <span class="command-shortcut">{{ item.shortcut }}</span>
+        {% endif %}
+      </div>
+    {% endfor %}
+    {% if items_json.size == 0 %}
+      <div class="command-empty">{{ empty_text }}</div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  function filterCommands(containerId, query) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const items = container.querySelectorAll('.command-item');
+    let visibleCount = 0;
+    const search = query.toLowerCase();
+
+    items.forEach(item => {
+      const match = item.dataset.commandTitle.includes(search);
+      item.style.display = match ? 'flex' : 'none';
+      if (match) visibleCount++;
+    });
+
+    const empty = container.querySelector('.command-empty');
+    if (empty) empty.style.display = visibleCount === 0 ? 'block' : 'none';
+  }
+</script>
