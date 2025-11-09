@@ -1,0 +1,45 @@
+{% comment %}
+  SEPARATOR
+  ---------
+  Simple horizontal or vertical line divider.
+  Mimics Radix UI Separator component behavior in Liquid.
+
+  Usage Examples:
+  {% render 'separator' %}
+  {% render 'separator', orientation: 'vertical', height: '40px' %}
+{% endcomment %}
+
+{% assign orientation = orientation | default: "horizontal" %}
+{% assign color = color | default: "rgba(0,0,0,0.1)" %}
+{% assign height = height | default: "1px" %}
+{% assign width = width | default: "100%" %}
+
+{% if orientation == "vertical" %}
+  {% assign height = height | default: "100%" %}
+  {% assign width = width | default: "1px" %}
+{% endif %}
+
+<style>
+  .separator {
+    background-color: {{ color }};
+    display: block;
+    border: none;
+    flex-shrink: 0;
+  }
+</style>
+
+{% if orientation == "horizontal" %}
+  <hr
+    role="separator"
+    aria-orientation="horizontal"
+    class="separator"
+    style="height: {{ height }}; width: {{ width }};"
+  />
+{% else %}
+  <div
+    role="separator"
+    aria-orientation="vertical"
+    class="separator"
+    style="height: {{ height }}; width: {{ width }};"
+  ></div>
+{% endif %}
