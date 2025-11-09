@@ -1,0 +1,166 @@
+{% comment %}
+  NAVIGATION MENU
+  ---------------
+  Shopify Liquid version of the Radix Navigation Menu.
+  Creates an accessible dropdown-based navigation bar.
+
+  Usage Example:
+  {% render 'navigation-menu',
+    items: [
+      {
+        title: 'Shop',
+        links: [
+          { label: 'New Arrivals', url: '/collections/new' },
+          { label: 'Best Sellers', url: '/collections/best-sellers' },
+          { label: 'Sale', url: '/collections/sale' }
+        ]
+      },
+      {
+        title: 'About',
+        links: [
+          { label: 'Our Story', url: '/pages/about' },
+          { label: 'Sustainability', url: '/pages/sustainability' }
+        ]
+      }
+    ]
+  %}
+{% endcomment %}
+
+{% assign nav_items = items | default: [] %}
+{% assign nav_id = id | default: 'navigation-' | append: section.id %}
+
+<style>
+  .liquid-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    background-color: #fff;
+    position: relative;
+  }
+
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-trigger {
+    background: none;
+    border: none;
+    font-size: 15px;
+    font-weight: 500;
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .nav-trigger:hover,
+  .nav-trigger[aria-expanded="true"] {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  .nav-chevron {
+    margin-left: 4px;
+    transition: transform 0.2s ease;
+    display: inline-block;
+  }
+
+  .nav-trigger[aria-expanded="true"] .nav-chevron {
+    transform: rotate(180deg);
+  }
+
+  .nav-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 180px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    padding: 8px 0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    z-index: 20;
+  }
+
+  .nav-item[aria-expanded="true"] .nav-content {
+    display: block;
+  }
+
+  .nav-link {
+    display: block;
+    padding: 8px 14px;
+    font-size: 14px;
+    color: #111;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .nav-link:hover {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  .nav-indicator {
+    position: absolute;
+    bottom: 0;
+    height: 2px;
+    background-color: #111;
+    width: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: all 0.3s ease;
+  }
+
+  .nav-item[aria-expanded="true"] .nav-indicator {
+    width: 60%;
+  }
+</style>
+
+<nav id="{{ nav_id }}" class="liquid-nav" role="navigation">
+  {% for item in nav_items %}
+    <div class="nav-item" aria-expanded="false">
+      <button class="nav-trigger" type="button" aria-haspopup="true">
+        {{ item.title }}
+        <span class="nav-chevron">⌄</span>
+      </button>
+
+      {% if item.links %}
+        <div class="nav-content" role="menu">
+          {% for link in item.links %}
+            <a
+              href="{{ link.url }}"
+              class="nav-link"
+              role="menuitem"
+            >
+              {{ link.label }}
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="nav-indicator"></div>
+    </div>
+  {% endfor %}
+</nav>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const nav = document.getElementById('{{ nav_id }}');
+    const items = nav.querySelectorAll(".nav-item");
+
+    items.forEach((item) => {
+      const trigger = item.querySelector(".nav-trigger");
+
+      trigger.addEventListener("click", (e) => {
+        const isOpen = item.getAttribute("aria-expanded") === "true";
+        items.forEach(i => i.setAttribute("aria-expanded", "false"));
+        item.setAttribute("aria-expanded", !isOpen);
+      });
+
+      item.addEventListener("mouseleave", () => {
+        item.setAttribute("aria-expanded", "false");
+      });
+    });
+  });
+</script>
