@@ -1,0 +1,200 @@
+{% comment %}
+  BADSEKI — Product Grid with Category Tabs (client-side filter)
+  - Sticky tabs (ALL + catégories configurables)
+  - Source: collection courante OU collection choisie en settings
+  - Filtrage: par 'category source' -> product_type ou tag
+  - Grille 2/4 colonnes
+  - Nécessite le snippet 'product-card-badseki' (ci-dessous)
+{% endcomment %}
+
+{% liquid
+  assign src_collection = collection
+  if section.settings.collection != blank
+    assign src_collection = section.settings.collection
+  endif
+%}
+
+<section class="min-h-screen bg-white pt-16" data-badseki-grid>
+  <!-- Category Navigation -->
+  <div class="sticky top-16 bg-white border-b border-black/20 z-40">
+    <div class="px-6 py-4 overflow-x-auto">
+      <div class="flex gap-8 min-w-max" data-badseki-tabs>
+        <!-- ALL -->
+        <button
+          class="uppercase tracking-wider transition-opacity opacity-100"
+          data-cat="ALL"
+          aria-pressed="true"
+          style="font-size:14px;letter-spacing:0.05em;font-weight:400">
+          ALL
+        </button>
+
+        {% for block in section.blocks %}
+          {% if block.type == 'category' and block.settings.label != blank %}
+            <button
+              class="uppercase tracking-wider transition-opacity opacity-40 hover:opacity-70"
+              data-cat="{{ block.settings.label | escape }}"
+              style="font-size:14px;letter-spacing:0.05em;font-weight:400">
+              {{ block.settings.label }}
+            </button>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Grid -->
+  <section class="px-6 py-12">
+    {% paginate src_collection.products by section.settings.per_page %}
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6" data-badseki-gridlist>
+        {% for product in src_collection.products %}
+          {% liquid
+            assign category_value = ''
+            if section.settings.category_source == 'product_type'
+              assign category_value = product.type
+            else
+              comment
+                Si 'tag', on prendra le premier tag parmi la liste déclarée en blocks qui matche.
+              endcomment
+              assign category_value = 'OTHER'
+              for block in section.blocks
+                if block.type == 'category'
+                  assign label = block.settings.label | downcase
+                  assign match_tag = block.settings.tag | downcase
+                  if match_tag != blank
+                    for t in product.tags
+                      if t | downcase == match_tag
+                        assign category_value = block.settings.label
+                        break
+                      endif
+                    endfor
+                  else
+                    comment
+                      Si aucun tag fourni, on tente label == tag
+                    endcomment
+                    for t in product.tags
+                      if t | downcase == label
+                        assign category_value = block.settings.label
+                        break
+                      endif
+                    endfor
+                  endif
+                endif
+                if category_value != 'OTHER' and category_value != ''
+                  break
+                endif
+              endfor
+            endif
+
+            if category_value == blank
+              assign category_value = 'OTHER'
+            endif
+          %}
+
+          <div class="group cursor-pointer" data-cat-item data-cat-val="{{ category_value | escape }}">
+            {% render 'product-card-badseki', product: product %}
+          </div>
+        {% endfor %}
+      </div>
+
+      {% if paginate.pages > 1 %}
+        <div class="mt-10 flex items-center justify-center gap-4">
+          {% if paginate.previous %}
+            <a href="{{ paginate.previous.url }}" class="px-4 py-2 border border-black/20 hover:border-black transition-colors uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Prev</a>
+          {% endif %}
+          <span class="opacity-60" style="font-size:12px;letter-spacing:0.05em">{{ paginate.current_page }} / {{ paginate.pages }}</span>
+          {% if paginate.next %}
+            <a href="{{ paginate.next.url }}" class="px-4 py-2 border border-black/20 hover:border-black transition-colors uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Next</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endpaginate %}
+  </section>
+
+  <script>
+    (function(){
+      const root = document.currentScript.closest('[data-badseki-grid]');
+      if (!root) return;
+
+      const tabs = root.querySelectorAll('[data-badseki-tabs] [data-cat]');
+      const cards = root.querySelectorAll('[data-cat-item]');
+      let current = 'ALL';
+
+      function applyFilter(cat){
+        current = cat;
+        tabs.forEach(btn => {
+          const active = btn.getAttribute('data-cat') === cat;
+          btn.classList.toggle('opacity-100', active);
+          btn.classList.toggle('opacity-40', !active);
+        });
+        cards.forEach(card => {
+          const val = card.getAttribute('data-cat-val') || 'OTHER';
+          const show = (cat === 'ALL') ? true : (val === cat);
+          card.style.display = show ? '' : 'none';
+        });
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => applyFilter(btn.getAttribute('data-cat')));
+      });
+
+      // Init
+      applyFilter('ALL');
+    })();
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "BADSEKI — Product Grid",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection source (optional)",
+      "info": "Si vide, utilise la collection du template."
+    },
+    {
+      "type": "select",
+      "id": "category_source",
+      "label": "Source des catégories",
+      "default": "product_type",
+      "options": [
+        { "value": "product_type", "label": "Product type" },
+        { "value": "tag", "label": "Tag (via blocks)" }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "label": "Produits par page",
+      "default": 24
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "Catégorie",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label (ex: JACKETS)" },
+        { "type": "text", "id": "tag", "label": "Tag associé (si source = Tag)", "info": "Optionnel. Si vide, on matche sur le label lui-même." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "BADSEKI — Product Grid",
+      "blocks": [
+        { "type": "category", "settings": { "label": "JACKETS" } },
+        { "type": "category", "settings": { "label": "PANTS" } },
+        { "type": "category", "settings": { "label": "T-SHIRTS" } },
+        { "type": "category", "settings": { "label": "SWEATSHIRTS" } },
+        { "type": "category", "settings": { "label": "ACCESSORIES" } },
+        { "type": "category", "settings": { "label": "BAGS" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
