@@ -1,0 +1,142 @@
+{% comment %}
+  CAROUSEL
+  --------
+  Liquid version of the React Embla Carousel.
+  Includes slides with previous/next navigation.
+  No external dependencies — pure JS + CSS.
+
+  Usage:
+    {% render 'carousel',
+      slides: [
+        { image: 'https://cdn.shopify.com/s/files/1/0000/0000/files/pic1.jpg', alt: 'Slide 1' },
+        { image: 'https://cdn.shopify.com/s/files/1/0000/0000/files/pic2.jpg', alt: 'Slide 2' },
+        { image: 'https://cdn.shopify.com/s/files/1/0000/0000/files/pic3.jpg', alt: 'Slide 3' }
+      ]
+    %}
+{% endcomment %}
+
+{% assign slides = slides | default: '' %}
+
+<style>
+  .carousel {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+  }
+  .carousel-track {
+    display: flex;
+    transition: transform .5s ease;
+  }
+  .carousel-slide {
+    flex: 0 0 100%;
+    position: relative;
+  }
+  .carousel-slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+  }
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.2);
+    background: rgba(255,255,255,0.8);
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s ease, opacity .2s ease;
+  }
+  .carousel-btn:hover {
+    background: #fff;
+  }
+  .carousel-btn.prev { left: 8px; }
+  .carousel-btn.next { right: 8px; }
+  .carousel-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .carousel-dots {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+  }
+  .carousel-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.3);
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+  .carousel-dot.active {
+    background: #111;
+  }
+</style>
+
+<div class="carousel" id="carousel">
+  <div class="carousel-track" id="carousel-track">
+    {% for slide in slides %}
+      <div class="carousel-slide">
+        <img src="{{ slide.image }}" alt="{{ slide.alt }}">
+      </div>
+    {% endfor %}
+  </div>
+
+  <button class="carousel-btn prev" id="carousel-prev" aria-label="Previous slide">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+  </button>
+  <button class="carousel-btn next" id="carousel-next" aria-label="Next slide">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+  </button>
+
+  <div class="carousel-dots" id="carousel-dots"></div>
+</div>
+
+<script>
+  (function() {
+    const track = document.getElementById('carousel-track');
+    const slides = Array.from(track.children);
+    const prevButton = document.getElementById('carousel-prev');
+    const nextButton = document.getElementById('carousel-next');
+    const dotsContainer = document.getElementById('carousel-dots');
+    let currentIndex = 0;
+
+    slides.forEach((_, index) => {
+      const dot = document.createElement('div');
+      dot.className = 'carousel-dot';
+      if (index === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goToSlide(index));
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = Array.from(dotsContainer.children);
+
+    function updateCarousel() {
+      track.style.transform = `translateX(-${currentIndex * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle('active', i === currentIndex));
+    }
+
+    function goToSlide(index) {
+      if (index < 0) index = slides.length - 1;
+      if (index >= slides.length) index = 0;
+      currentIndex = index;
+      updateCarousel();
+    }
+
+    prevButton.addEventListener('click', () => goToSlide(currentIndex - 1));
+    nextButton.addEventListener('click', () => goToSlide(currentIndex + 1));
+
+    // Optional autoplay
+    // setInterval(() => goToSlide(currentIndex + 1), 5000);
+  })();
+</script>
