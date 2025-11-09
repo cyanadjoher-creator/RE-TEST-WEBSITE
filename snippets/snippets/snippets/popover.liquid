@@ -1,0 +1,114 @@
+{% comment %}
+  POPOVER
+  -------
+  Shopify Liquid translation of the Popover component.
+  Displays contextual content (tooltips, info cards, etc.) when triggered by a button or element.
+
+  Usage Example:
+  {% render 'popover',
+    trigger_label: 'More Info',
+    content_title: 'Product Details',
+    content_body: 'Crafted from sustainable materials and designed in Paris.'
+  %}
+{% endcomment %}
+
+{% assign trigger_label = trigger_label | default: "Click me" %}
+{% assign content_title = content_title | default: "Popover Title" %}
+{% assign content_body = content_body | default: "This is your popover content." %}
+{% assign popover_id = id | default: "popover-" | append: section.id %}
+
+<style>
+  .liquid-popover {
+    position: relative;
+    display: inline-block;
+  }
+
+  .popover-trigger {
+    background-color: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .popover-trigger:hover {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  .popover-content {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    z-index: 20;
+    animation: fadeIn 0.2s ease forwards;
+  }
+
+  .popover-content[data-open="true"] {
+    display: block;
+  }
+
+  .popover-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+
+  .popover-body {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -10px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+</style>
+
+<div class="liquid-popover" id="{{ popover_id }}">
+  <button
+    class="popover-trigger"
+    type="button"
+    aria-haspopup="true"
+    aria-expanded="false"
+  >
+    {{ trigger_label }}
+  </button>
+
+  <div class="popover-content" data-open="false" role="dialog" aria-modal="false">
+    <div class="popover-title">{{ content_title }}</div>
+    <div class="popover-body">{{ content_body }}</div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const popover = document.getElementById('{{ popover_id }}');
+    const trigger = popover.querySelector(".popover-trigger");
+    const content = popover.querySelector(".popover-content");
+
+    trigger.addEventListener("click", (e) => {
+      const isOpen = content.getAttribute("data-open") === "true";
+      document.querySelectorAll(".popover-content").forEach((c) => c.setAttribute("data-open", "false"));
+      content.setAttribute("data-open", !isOpen);
+      trigger.setAttribute("aria-expanded", !isOpen);
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!popover.contains(e.target)) {
+        content.setAttribute("data-open", "false");
+        trigger.setAttribute("aria-expanded", "false");
+      }
+    });
+  });
+</script>
