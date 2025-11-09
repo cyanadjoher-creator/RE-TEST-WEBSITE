@@ -1,0 +1,70 @@
+{% schema %}
+{
+  "name": "Footer — BADSEKI",
+  "settings": [
+    { "type": "text", "id": "newsletter_heading", "label": "Titre newsletter", "default": "NEWSLETTER" },
+    { "type": "text", "id": "newsletter_text", "label": "Texte d’intro", "default": "Lorem ipsum dolor sit amet, consectetur adipiscing elit." },
+    { "type": "text", "id": "privacy_link", "label": "Lien confidentialité", "default": "/policies/privacy-policy" },
+    { "type": "text", "id": "terms_link", "label": "Lien conditions", "default": "/policies/terms-of-service" },
+    { "type": "text", "id": "contact_link", "label": "Lien contact", "default": "/pages/contact" }
+  ],
+  "presets": [{ "name": "Footer — BADSEKI" }]
+}
+{% endschema %}
+
+<footer class="border-t border-black/20 bg-white mt-20">
+  <div class="px-6 py-12">
+    <!-- Newsletter -->
+    <div class="mb-12 pb-12 border-b border-black/20">
+      <div class="max-w-md">
+        <div class="uppercase tracking-wider mb-4" style="font-size:14px;letter-spacing:0.1em;font-weight:400">
+          {{ section.settings.newsletter_heading }}
+        </div>
+        <p class="mb-6 opacity-60" style="font-size:13px;letter-spacing:0.02em">
+          {{ section.settings.newsletter_text }}
+        </p>
+
+        {%- form 'customer', id: 'newsletter', class: 'flex gap-2', novalidate: 'novalidate' -%}
+          {%- if form.posted_successfully? -%}
+            <p class="text-sm text-black/70">Thank you for subscribing!</p>
+          {%- endif -%}
+
+          <input
+            type="email"
+            name="contact[email]"
+            required
+            placeholder="ENTER YOUR EMAIL"
+            value="{{ form.email }}"
+            class="flex-1 px-4 py-3 border border-black/20 bg-white focus:outline-none focus:border-black transition-colors uppercase"
+            style="font-size:12px;letter-spacing:0.05em"
+          />
+          <input type="hidden" name="contact[tags]" value="newsletter">
+          <button
+            type="submit"
+            class="px-6 py-3 bg-black text-white hover:bg-black/80 transition-colors uppercase tracking-wider"
+            style="font-size:12px;letter-spacing:0.1em"
+          >
+            SUBSCRIBE
+          </button>
+        {%- endform -%}
+      </div>
+    </div>
+
+    <!-- Minimal Footer -->
+    <div class="pt-8">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="opacity-60 uppercase" style="font-size:11px;letter-spacing:0.08em;font-weight:300">
+          BADSEKI © {{ 'now' | date: '%Y' }}
+        </div>
+
+        <div class="flex items-center gap-3 opacity-60 uppercase" style="font-size:11px;letter-spacing:0.08em;font-weight:300">
+          <a href="{{ section.settings.terms_link }}" class="hover:opacity-100 transition-opacity">TERMS</a>
+          <span>|</span>
+          <a href="{{ section.settings.privacy_link }}" class="hover:opacity-100 transition-opacity">PRIVACY</a>
+          <span>|</span>
+          <a href="{{ section.settings.contact_link }}" class="hover:opacity-100 transition-opacity">CONTACT</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
