@@ -1,0 +1,56 @@
+{% comment %}
+  LABEL
+  -----
+  Liquid version of the Label component.
+  Supports `for` linking, disabled state, and custom class styling.
+
+  Usage:
+    {% render 'label',
+      for: 'email-input',
+      text: 'Email Address',
+      class: 'custom-label'
+    %}
+{% endcomment %}
+
+{% assign label_for = for | default: '' %}
+{% assign label_text = text | default: 'Label' %}
+{% assign label_class = class | default: '' %}
+
+<style>
+  .liquid-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    line-height: 1.3;
+    font-weight: 500;
+    color: #111;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .liquid-label[aria-disabled="true"] {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .liquid-label input:disabled + &,
+  .liquid-label.peer-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<label
+  {% if label_for != '' %}for="{{ label_for }}"{% endif %}
+  class="liquid-label {{ label_class }}"
+  {% if disabled %}aria-disabled="true"{% endif %}
+>
+  {{ label_text }}
+  {% if include_icon %}
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3 3" />
+    </svg>
+  {% endif %}
+</label>
