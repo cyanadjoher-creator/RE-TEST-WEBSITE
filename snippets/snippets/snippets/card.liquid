@@ -1,0 +1,106 @@
+{% comment %}
+  CARD
+  ----
+  Liquid version of the React Card component.
+  Includes slots for header, title, description, content, action, and footer.
+
+  Usage:
+    {% render 'card',
+      title: 'Product Title',
+      description: 'A short description of the product.',
+      content: '<p>Detailed content here.</p>',
+      action: '<a href="#" class="card-btn">View</a>',
+      footer: '<small>Updated today</small>'
+    %}
+{% endcomment %}
+
+{% assign card_title = title | default: '' %}
+{% assign card_desc = description | default: '' %}
+{% assign card_content = content | default: '' %}
+{% assign card_action = action | default: '' %}
+{% assign card_footer = footer | default: '' %}
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: #fff;
+    color: #111;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: .5rem;
+    padding: 1.5rem 1.5rem 0 1.5rem;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .card-description {
+    color: rgba(0,0,0,0.6);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .card-action {
+    justify-self: end;
+  }
+  .card-content {
+    padding: 0 1.5rem;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .card-footer {
+    display: flex;
+    align-items: center;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    font-size: 13px;
+    color: rgba(0,0,0,0.6);
+    border-top: 1px solid rgba(0,0,0,0.05);
+  }
+  .card-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: .4rem .9rem;
+    font-size: 13px;
+    border: 1px solid rgba(0,0,0,.2);
+    border-radius: 6px;
+    text-decoration: none;
+    color: #111;
+    transition: background .2s ease;
+  }
+  .card-btn:hover {
+    background: rgba(0,0,0,.05);
+  }
+</style>
+
+<div class="card" role="article">
+  <div class="card-header">
+    <div>
+      {% if card_title != blank %}
+        <div class="card-title">{{ card_title }}</div>
+      {% endif %}
+      {% if card_desc != blank %}
+        <div class="card-description">{{ card_desc }}</div>
+      {% endif %}
+    </div>
+    {% if card_action != blank %}
+      <div class="card-action">{{ card_action }}</div>
+    {% endif %}
+  </div>
+
+  {% if card_content != blank %}
+    <div class="card-content">{{ card_content }}</div>
+  {% endif %}
+
+  {% if card_footer != blank %}
+    <div class="card-footer">{{ card_footer }}</div>
+  {% endif %}
+</div>
