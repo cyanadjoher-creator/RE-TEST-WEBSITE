@@ -1,0 +1,72 @@
+{% comment %}
+  BREADCRUMB
+  ----------
+  Liquid version of the React Breadcrumb component.
+  Displays a navigation trail for pages.
+
+  Usage:
+    {% render 'breadcrumb',
+      links: [
+        { title: 'Home', url: '/' },
+        { title: 'Collection', url: '/collections/all' },
+        { title: 'Product Name', url: '' }
+      ]
+    %}
+{% endcomment %}
+
+{% assign items = links | default: '' %}
+
+<style>
+  .breadcrumb {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    color: rgba(0,0,0,0.7);
+  }
+  .breadcrumb a {
+    text-decoration: none;
+    color: rgba(0,0,0,0.7);
+    transition: color .2s ease;
+  }
+  .breadcrumb a:hover {
+    color: #111;
+  }
+  .breadcrumb-current {
+    color: #111;
+    font-weight: 500;
+  }
+  .breadcrumb-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(0,0,0,0.4);
+  }
+  .breadcrumb svg {
+    width: 14px;
+    height: 14px;
+  }
+</style>
+
+<nav class="breadcrumb" aria-label="breadcrumb">
+  {% for item in items %}
+    {% if forloop.first %}
+      <a href="{{ item.url }}">{{ item.title }}</a>
+    {% elsif forloop.last %}
+      <span class="breadcrumb-separator" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </span>
+      <span class="breadcrumb-current" aria-current="page">{{ item.title }}</span>
+    {% else %}
+      <span class="breadcrumb-separator" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </span>
+      <a href="{{ item.url }}">{{ item.title }}</a>
+    {% endif %}
+  {% endfor %}
+</nav>
