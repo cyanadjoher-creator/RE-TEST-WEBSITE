@@ -1,0 +1,25 @@
+{% comment %}
+  CLASSNAME MERGE (Shopify version of `cn()`)
+
+  In React, `cn()` merges conditional class names using clsx + tailwind-merge.
+  In Liquid, we achieve the same via:
+  - Conditional string concatenation
+  - Liquid filters and `if` logic
+
+  Usage:
+  {% render 'utils-cn',
+    base: 'bg-black text-white',
+    extra: class_variable,
+    condition: product.available
+  %}
+{% endcomment %}
+
+{% assign base = base | default: '' %}
+{% assign extra = extra | default: '' %}
+{% assign condition = condition | default: true %}
+
+{% if condition %}
+  {{ base | append: ' ' | append: extra | strip }}
+{% else %}
+  {{ base | strip }}
+{% endif %}
