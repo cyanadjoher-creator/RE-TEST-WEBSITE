@@ -1,0 +1,50 @@
+{% comment %}
+  useIsMobile (Shopify version)
+  ------------------------------
+  Replicates the behavior of React's `useIsMobile()` hook.
+
+  Exposes a global `window.isMobile` boolean and a `window.onMobileChange` event
+  that fires whenever the viewport crosses the 768px breakpoint.
+
+  Usage in Liquid:
+  - Include this snippet once globally (e.g., in theme.liquid or layout file)
+  - Use `window.isMobile` in inline scripts or conditional logic
+{% endcomment %}
+
+<script>
+  (function() {
+    const MOBILE_BREAKPOINT = 768;
+    let isMobile = window.innerWidth < MOBILE_BREAKPOINT;
+    window.isMobile = isMobile;
+
+    const updateMobileStatus = () => {
+      const newState = window.innerWidth < MOBILE_BREAKPOINT;
+      if (newState !== isMobile) {
+        isMobile = newState;
+        window.isMobile = newState;
+        window.dispatchEvent(
+          new CustomEvent("onMobileChange", { detail: { isMobile: newState } })
+        );
+      }
+    };
+
+    window.addEventListener("resize", updateMobileStatus);
+    window.addEventListener("orientationchange", updateMobileStatus);
+
+    // Optional: expose as utility
+    window.useIsMobile = function(callback) {
+      if (typeof callback === "function") {
+        callback(isMobile);
+        window.addEventListener("onMobileChange", (e) => {
+          callback(e.detail.isMobile);
+        });
+      }
+      return isMobile;
+    };
+
+    // Initialize immediately
+    document.addEventListener("DOMContentLoaded", () => {
+      updateMobileStatus();
+    });
+  })();
+</script>
