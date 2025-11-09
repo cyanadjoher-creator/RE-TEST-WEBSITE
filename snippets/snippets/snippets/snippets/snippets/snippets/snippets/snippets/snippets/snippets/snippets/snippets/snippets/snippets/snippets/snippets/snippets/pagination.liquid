@@ -1,0 +1,123 @@
+{% comment %}
+  PAGINATION
+  -----------
+  Shopify Liquid version of the Pagination component.
+  Provides navigation between pages of a collection, search results, etc.
+
+  Usage:
+  {% render 'pagination',
+    current_page: paginate.current_page,
+    pages: paginate.pages,
+    previous_url: paginate.previous.url,
+    next_url: paginate.next.url
+  %}
+{% endcomment %}
+
+{% assign total_pages = pages | default: paginate.pages %}
+{% assign current_page = current_page | default: paginate.current_page %}
+{% assign prev_url = previous_url | default: paginate.previous.url %}
+{% assign next_url = next_url | default: paginate.next.url %}
+{% assign base_url = base_url | default: request.path %}
+
+<style>
+  .liquid-pagination {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 2rem auto;
+  }
+
+  .pagination-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+  }
+
+  .pagination-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    min-width: 36px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 14px;
+    color: #222;
+    background-color: transparent;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .pagination-link[aria-current="page"] {
+    background-color: #111;
+    color: #fff;
+  }
+
+  .pagination-prev,
+  .pagination-next {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    height: 36px;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid transparent;
+  }
+
+  .pagination-prev:hover,
+  .pagination-next:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .pagination-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    opacity: 0.6;
+  }
+</style>
+
+{% if total_pages > 1 %}
+  <nav class="liquid-pagination" role="navigation" aria-label="pagination">
+    <ul class="pagination-content">
+
+      {%- if prev_url -%}
+        <li>
+          <a href="{{ prev_url }}" class="pagination-prev" aria-label="Previous page">
+            ‹ <span class="hidden sm:inline">Previous</span>
+          </a>
+        </li>
+      {%- endif -%}
+
+      {%- for i in (1..total_pages) -%}
+        {%- if i == current_page -%}
+          <li><a href="#" aria-current="page" class="pagination-link">{{ i }}</a></li>
+        {%- elsif i == 1 or i == total_pages or i == current_page | minus: 1 or i == current_page | plus: 1 -%}
+          <li><a href="{{ base_url }}?page={{ i }}" class="pagination-link">{{ i }}</a></li>
+        {%- elsif i == current_page | minus: 2 or i == current_page | plus: 2 -%}
+          <li><span class="pagination-ellipsis">…</span></li>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if next_url -%}
+        <li>
+          <a href="{{ next_url }}" class="pagination-next" aria-label="Next page">
+            <span class="hidden sm:inline">Next</span> ›
+          </a>
+        </li>
+      {%- endif -%}
+
+    </ul>
+  </nav>
+{% endif %}
