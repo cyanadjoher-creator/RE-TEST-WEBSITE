@@ -1,0 +1,95 @@
+{% comment %}
+  ALERT
+  -----
+  Converted from React (cva + class variance) to Shopify Liquid.
+  Displays an alert block with two variants: default and destructive.
+  Accepts title, description, and optional icon.
+
+  Usage:
+    {% render 'alert',
+      variant: 'default',
+      title: 'Success!',
+      description: 'Your changes have been saved successfully.',
+      icon: 'check'
+    %}
+    {% render 'alert',
+      variant: 'destructive',
+      title: 'Error!',
+      description: 'There was a problem saving your changes.',
+      icon: 'alert-triangle'
+    %}
+{% endcomment %}
+
+{% assign type = variant | default: 'default' %}
+{% assign icon_name = icon | default: '' %}
+{% assign title_text = title | default: '' %}
+{% assign desc_text = description | default: '' %}
+
+<style>
+  .alert {
+    position: relative;
+    width: 100%;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    align-items: start;
+    gap: 8px;
+    line-height: 1.5;
+  }
+  .alert.default {
+    background: #fafafa;
+    color: #111;
+  }
+  .alert.destructive {
+    background: #fff5f5;
+    color: #b00020;
+    border-color: #f5c2c7;
+  }
+  .alert svg {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+  }
+  .alert-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+  .alert-description {
+    color: rgba(0,0,0,0.7);
+    font-size: 13px;
+  }
+  .alert.destructive .alert-description {
+    color: #b00020;
+  }
+</style>
+
+<div class="alert {{ type }}" role="alert">
+  {% if icon_name != blank %}
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {% case icon_name %}
+        {% when 'check' %}
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        {% when 'alert-triangle' %}
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64a1 1 0 00.86-1.5L13.71 3.86a1 1 0 00-1.72 0zM12 9v4m0 4h.01" />
+        {% when 'info' %}
+          <circle cx="12" cy="12" r="10" stroke-width="2" />
+          <line x1="12" y1="8" x2="12" y2="8" stroke-width="2" />
+          <line x1="12" y1="12" x2="12" y2="16" stroke-width="2" />
+        {% else %}
+          <circle cx="12" cy="12" r="10" stroke-width="2" />
+      {% endcase %}
+    </svg>
+  {% endif %}
+
+  <div>
+    {% if title_text != blank %}
+      <div class="alert-title">{{ title_text }}</div>
+    {% endif %}
+    {% if desc_text != blank %}
+      <div class="alert-description">{{ desc_text }}</div>
+    {% endif %}
+  </div>
+</div>
