@@ -1,0 +1,125 @@
+{% comment %}
+  MENUBAR
+  -------
+  Liquid translation of the Menubar component — a horizontal navigation or control bar.
+
+  Usage Example:
+  {% render 'menubar',
+    items: [
+      { label: 'File', submenu: ['New', 'Open', 'Save'] },
+      { label: 'Edit', submenu: ['Undo', 'Redo', 'Cut', 'Copy', 'Paste'] },
+      { label: 'View', submenu: ['Zoom In', 'Zoom Out'] }
+    ]
+  %}
+{% endcomment %}
+
+{% assign menu_items = items | default: [] %}
+{% assign menubar_id = id | default: 'menubar-' | append: section.id %}
+
+<style>
+  .liquid-menubar {
+    display: flex;
+    align-items: center;
+    height: 36px;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    background-color: #fff;
+    padding: 4px;
+    gap: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  .menubar-item {
+    position: relative;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .menubar-item:hover,
+  .menubar-item[aria-expanded="true"] {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  .menubar-submenu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 150px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    padding: 4px 0;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    z-index: 10;
+  }
+
+  .menubar-item[aria-expanded="true"] .menubar-submenu {
+    display: block;
+  }
+
+  .submenu-item {
+    padding: 6px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .submenu-item:hover {
+    background-color: rgba(0,0,0,0.05);
+  }
+
+  .menubar-separator {
+    width: 1px;
+    height: 18px;
+    background-color: rgba(0,0,0,0.1);
+    margin: 0 4px;
+  }
+</style>
+
+<nav id="{{ menubar_id }}" class="liquid-menubar" role="menubar">
+  {% for item in menu_items %}
+    <div
+      class="menubar-item"
+      tabindex="0"
+      aria-haspopup="true"
+      aria-expanded="false"
+    >
+      {{ item.label }}
+      {% if item.submenu %}
+        <div class="menubar-submenu" role="menu">
+          {% for subitem in item.submenu %}
+            <div class="submenu-item" role="menuitem">
+              {{ subitem }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% unless forloop.last %}
+      <div class="menubar-separator" role="separator"></div>
+    {% endunless %}
+  {% endfor %}
+</nav>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const menubar = document.getElementById('{{ menubar_id }}');
+    menubar.querySelectorAll('.menubar-item').forEach(item => {
+      item.addEventListener('click', e => {
+        const expanded = item.getAttribute('aria-expanded') === 'true';
+        menubar.querySelectorAll('.menubar-item').forEach(i => i.setAttribute('aria-expanded', 'false'));
+        item.setAttribute('aria-expanded', String(!expanded));
+      });
+
+      item.addEventListener('blur', e => {
+        setTimeout(() => item.setAttribute('aria-expanded', 'false'), 150);
+      });
+    });
+  });
+</script>
