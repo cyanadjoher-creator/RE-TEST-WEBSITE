@@ -1,0 +1,212 @@
+{% comment %}
+  Section: Header — BADSEKI
+  - Sticky, ombre au scroll
+  - Menu desktop + menu mobile
+  - Icônes: recherche / aide (lien personnalisable) / compte / panier (avec compteur)
+{% endcomment %}
+
+<section class="badseki-header" data-section-id="{{ section.id }}">
+  <header class="badseki-header__bar" role="banner" aria-label="Site header">
+    <div class="badseki-header__inner">
+      <!-- Left: Logo -->
+      <div class="badseki-header__left">
+        <a href="{{ routes.root_url }}" class="badseki-header__brand" aria-label="{{ shop.name | escape }}">
+          {{ section.settings.logo_text | default: shop.name | escape }}
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="badseki-nav badseki-nav--desktop" aria-label="Primary">
+          {% if section.settings.main_menu != blank %}
+            <ul class="badseki-nav__list">
+              {% for link in linklists[section.settings.main_menu].links %}
+                <li>
+                  <a href="{{ link.url }}" class="badseki-nav__link">{{ link.title | escape }} +</a>
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        </nav>
+      </div>
+
+      <!-- Right: Icons -->
+      <div class="badseki-header__right">
+        {% if section.settings.show_search %}
+          <a href="{{ routes.search_url }}" class="badseki-icon badseki-icon--hide-sm" aria-label="{{ 'general.search.search' | t }}">
+            {% render 'badseki-icon-search' %}
+          </a>
+        {% endif %}
+
+        {% if section.settings.show_help and section.settings.help_url != blank %}
+          <a href="{{ section.settings.help_url }}" class="badseki-icon badseki-icon--hide-sm" aria-label="Help">
+            {% render 'badseki-icon-help' %}
+          </a>
+        {% endif %}
+
+        {% if section.settings.show_account %}
+          <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="badseki-icon badseki-icon--hide-sm" aria-label="{{ 'customer.account.title' | t }}">
+            {% render 'badseki-icon-user' %}
+          </a>
+        {% endif %}
+
+        {% if section.settings.show_cart %}
+          <a href="{{ routes.cart_url }}" class="badseki-icon" aria-label="{{ 'templates.cart.cart' | t }}">
+            <span class="badseki-icon__bag">{% render 'badseki-icon-bag' %}</span>
+            <span class="badseki-cart-count" aria-live="polite">{{ cart.item_count }}</span>
+          </a>
+        {% endif %}
+
+        <!-- Mobile burger -->
+        <button class="badseki-burger badseki-icon badseki-icon--show-sm" aria-label="Menu" data-badseki-menu-toggle>
+          {% render 'badseki-icon-menu' %}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Menu Drawer -->
+  <div class="badseki-drawer" hidden data-badseki-drawer>
+    <div class="badseki-drawer__inner">
+      <div class="badseki-drawer__head">
+        <span class="badseki-drawer__title">Menu</span>
+        <button class="badseki-icon" aria-label="Close" data-badseki-menu-close>
+          {% render 'badseki-icon-x' %}
+        </button>
+      </div>
+
+      <nav class="badseki-nav badseki-nav--mobile" aria-label="Mobile Primary">
+        {% if section.settings.main_menu != blank %}
+          <ul class="badseki-nav__list badseki-nav__list--mobile">
+            {% for link in linklists[section.settings.main_menu].links %}
+              <li>
+                <a href="{{ link.url }}" class="badseki-nav__link badseki-nav__link--mobile">{{ link.title | escape }} +</a>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </nav>
+
+      <div class="badseki-drawer__actions">
+        {% if section.settings.show_search %}
+          <a href="{{ routes.search_url }}" class="badseki-drawer__action">Search</a>
+        {% endif %}
+        {% if section.settings.show_help and section.settings.help_url != blank %}
+          <a href="{{ section.settings.help_url }}" class="badseki-drawer__action">Help</a>
+        {% endif %}
+        {% if section.settings.show_account %}
+          <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" class="badseki-drawer__action">
+            {% if customer %}Account{% else %}Sign in{% endif %}
+          </a>
+        {% endif %}
+        {% if section.settings.show_cart %}
+          <a href="{{ routes.cart_url }}" class="badseki-drawer__action">Cart ({{ cart.item_count }})</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .badseki-header__bar {
+    position: sticky; top: 0; left: 0; right: 0; z-index: 50;
+    background:#fff; transition: box-shadow .3s ease, border-color .3s ease;
+    border-bottom:1px solid rgba(0,0,0,.2);
+  }
+  .badseki-header__bar.is-scrolled {
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    border-bottom-color: rgba(0,0,0,.1);
+  }
+  .badseki-header__inner {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1rem 1.5rem;
+  }
+  .badseki-header__left { display:flex; align-items:center; gap:1.5rem; }
+  .badseki-header__brand {
+    text-transform:uppercase; letter-spacing:.08em; font-weight:400; font-size:14px;
+  }
+  .badseki-nav__list { display:flex; gap:1.25rem; align-items:center; }
+  .badseki-nav__link { font-size:13px; letter-spacing:.06em; font-weight:300; transition:opacity .2s; }
+  .badseki-nav__link:hover { opacity:.6; }
+  .badseki-header__right { display:flex; align-items:center; gap:.75rem; }
+  .badseki-icon { display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px; }
+  .badseki-icon svg { width:18px; height:18px; stroke-width:1.5; }
+  .badseki-cart-count {
+    font-size:11px; margin-left:4px; min-width:1ch; text-align:center; letter-spacing:.06em;
+  }
+  .badseki-burger { border:0; background:transparent; cursor:pointer; }
+
+  /* Drawer */
+  .badseki-drawer {
+    position: fixed; inset: 65px 0 0 0; background:#fff; z-index: 40;
+    opacity:0; visibility:hidden; transition:opacity .25s ease, visibility .25s ease;
+  }
+  .badseki-drawer.is-open { opacity:1; visibility:visible; }
+  .badseki-drawer__inner { padding:2rem 1.5rem; display:flex; flex-direction:column; gap:1rem; }
+  .badseki-drawer__head { display:flex; align-items:center; justify-content:space-between; }
+  .badseki-drawer__title { text-transform:uppercase; letter-spacing:.1em; font-size:12px; }
+  .badseki-nav__list--mobile { flex-direction:column; }
+  .badseki-nav__link--mobile { display:block; padding:1rem 0; border-bottom:1px solid rgba(0,0,0,.1); }
+  .badseki-drawer__actions { display:flex; flex-direction:column; gap:.75rem; margin-top:1.5rem; }
+  .badseki-drawer__action { font-size:14px; letter-spacing:.06em; }
+
+  /* Responsive */
+  @media (max-width: 767px) {
+    .badseki-nav--desktop { display:none; }
+    .badseki-icon--hide-sm { display:none; }
+    .badseki-icon--show-sm { display:inline-flex; }
+  }
+  @media (min-width: 768px) {
+    .badseki-icon--show-sm { display:none; }
+    .badseki-nav--desktop { display:block; }
+  }
+</style>
+
+<script>
+  (function() {
+    const header = document.currentScript.closest('[data-section-id]').querySelector('.badseki-header__bar');
+    const drawer = document.currentScript.closest('[data-section-id]').querySelector('[data-badseki-drawer]');
+    const toggle = document.currentScript.closest('[data-section-id]').querySelector('[data-badseki-menu-toggle]');
+    const closeBtn = document.currentScript.closest('[data-section-id]').querySelector('[data-badseki-menu-close]');
+
+    // Ombre au scroll
+    var last = window.scrollY;
+    function onScroll() {
+      const scrolled = window.scrollY > 0;
+      header.classList.toggle('is-scrolled', scrolled);
+      last = window.scrollY;
+    }
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Drawer mobile
+    function openDrawer() { drawer.hidden = false; requestAnimationFrame(()=> drawer.classList.add('is-open')); }
+    function closeDrawer() { drawer.classList.remove('is-open'); setTimeout(()=> drawer.hidden = true, 250); }
+
+    if (toggle) toggle.addEventListener('click', () => {
+      if (drawer.classList.contains('is-open')) { closeDrawer(); } else { openDrawer(); }
+    });
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    // Fermer au click sur lien
+    drawer?.addEventListener('click', (e) => {
+      const a = e.target.closest('a');
+      if (a) closeDrawer();
+    });
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Header — BADSEKI",
+  "settings": [
+    { "type": "text", "id": "logo_text", "label": "Texte du logo", "default": "BADSEKI" },
+    { "type": "link_list", "id": "main_menu", "label": "Menu principal" },
+    { "type": "checkbox", "id": "show_search", "label": "Afficher la recherche", "default": true },
+    { "type": "checkbox", "id": "show_help", "label": "Afficher Aide (lien)", "default": true },
+    { "type": "url", "id": "help_url", "label": "URL Aide" },
+    { "type": "checkbox", "id": "show_account", "label": "Afficher Compte", "default": true },
+    { "type": "checkbox", "id": "show_cart", "label": "Afficher Panier", "default": true }
+  ],
+  "presets": [
+    { "name": "Header — BADSEKI" }
+  ]
+}
+{% endschema %}
