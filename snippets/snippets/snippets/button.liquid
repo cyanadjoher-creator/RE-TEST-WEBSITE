@@ -1,0 +1,100 @@
+{% comment %}
+  BUTTON
+  ------
+  Liquid version of the React Button component.
+  Supports multiple variants (default, destructive, outline, secondary, ghost, link)
+  and sizes (default, sm, lg, icon).
+
+  Usage:
+    {% render 'button', text: 'Add to Cart', variant: 'default', size: 'lg', url: '/cart' %}
+    {% render 'button', text: 'Delete', variant: 'destructive' %}
+{% endcomment %}
+
+{% assign variant = variant | default: 'default' %}
+{% assign size = size | default: 'default' %}
+{% assign text = text | default: 'Button' %}
+{% assign link = url | default: '' %}
+
+<style>
+  .btn {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    font-size:14px;
+    font-weight:500;
+    border-radius:6px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:all .2s ease;
+    text-decoration:none;
+    white-space:nowrap;
+  }
+  /* Sizes */
+  .btn.default { height:36px; padding:0 16px; }
+  .btn.sm { height:32px; padding:0 12px; font-size:13px; }
+  .btn.lg { height:40px; padding:0 20px; font-size:15px; }
+  .btn.icon { width:36px; height:36px; padding:0; }
+
+  /* Variants */
+  .btn.default-variant {
+    background:#111;
+    color:#fff;
+  }
+  .btn.default-variant:hover { background:#222; }
+
+  .btn.destructive {
+    background:#dc2626;
+    color:#fff;
+  }
+  .btn.destructive:hover { background:#b91c1c; }
+
+  .btn.outline {
+    background:#fff;
+    color:#111;
+    border-color:rgba(0,0,0,.15);
+  }
+  .btn.outline:hover { background:#f5f5f5; }
+
+  .btn.secondary {
+    background:#eaeaea;
+    color:#111;
+  }
+  .btn.secondary:hover { background:#d5d5d5; }
+
+  .btn.ghost {
+    background:transparent;
+    color:#111;
+  }
+  .btn.ghost:hover { background:rgba(0,0,0,0.05); }
+
+  .btn.link {
+    background:none;
+    border:none;
+    color:#111;
+    text-decoration:underline;
+    text-underline-offset:4px;
+    padding:0;
+  }
+  .btn.link:hover { color:#000; }
+
+  .btn:disabled {
+    opacity:.5;
+    pointer-events:none;
+  }
+</style>
+
+{% capture classes %}
+  btn {{ size }}
+  {% if variant == 'default' %}
+    default-variant
+  {% else %}
+    {{ variant }}
+  {% endif %}
+{% endcapture %}
+
+{% if link != blank %}
+  <a href="{{ link }}" class="{{ classes | strip }}" role="button">{{ text }}</a>
+{% else %}
+  <button type="button" class="{{ classes | strip }}">{{ text }}</button>
+{% endif %}
