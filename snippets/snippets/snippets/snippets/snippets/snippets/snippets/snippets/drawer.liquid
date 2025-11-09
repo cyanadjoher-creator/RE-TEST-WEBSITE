@@ -1,0 +1,186 @@
+{% comment %}
+  DRAWER
+  ------
+  Shopify Liquid implementation of a responsive slide-in Drawer (inspired by Vaul).
+  Supports top, bottom, left, and right directions.
+
+  Usage:
+    {% render 'drawer',
+      id: 'cart-drawer',
+      trigger_label: 'Open Cart',
+      position: 'right',
+      title: 'Your Shopping Cart',
+      description: 'Review your items before checkout.',
+      content: '<p>Your cart is empty.</p>'
+    %}
+{% endcomment %}
+
+{% assign drawer_id = id | default: 'drawer-' | append: section.id %}
+{% assign trigger_label = trigger_label | default: 'Open Drawer' %}
+{% assign drawer_title = title | default: 'Drawer Title' %}
+{% assign drawer_description = description | default: '' %}
+{% assign drawer_content = content | default: '' %}
+{% assign drawer_position = position | default: 'bottom' %}
+
+<style>
+  .drawer-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s ease;
+    z-index: 50;
+  }
+  .drawer-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .drawer-content {
+    position: fixed;
+    background: #fff;
+    border-radius: 8px 8px 0 0;
+    max-height: 80vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform .35s ease, opacity .3s ease;
+    z-index: 51;
+    padding: 24px;
+    width: 100%;
+  }
+  .drawer-content.active {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .drawer-content[data-position="top"] {
+    top: 0;
+    border-radius: 0 0 8px 8px;
+    transform: translateY(-100%);
+  }
+  .drawer-content[data-position="top"].active {
+    transform: translateY(0);
+  }
+  .drawer-content[data-position="right"] {
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 75%;
+    max-width: 420px;
+    border-radius: 0;
+    transform: translateX(100%);
+  }
+  .drawer-content[data-position="right"].active {
+    transform: translateX(0);
+  }
+  .drawer-content[data-position="left"] {
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 75%;
+    max-width: 420px;
+    border-radius: 0;
+    transform: translateX(-100%);
+  }
+  .drawer-content[data-position="left"].active {
+    transform: translateX(0);
+  }
+
+  .drawer-header {
+    margin-bottom: 16px;
+  }
+  .drawer-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .drawer-description {
+    font-size: 14px;
+    color: rgba(0,0,0,0.6);
+  }
+  .drawer-footer {
+    margin-top: 16px;
+    text-align: right;
+  }
+  .drawer-close {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: .6;
+    transition: opacity .2s ease;
+  }
+  .drawer-close:hover {
+    opacity: 1;
+  }
+</style>
+
+<div class="drawer-wrapper" id="{{ drawer_id }}">
+  <button class="drawer-trigger" type="button" data-trigger>
+    {{ trigger_label }}
+  </button>
+
+  <div class="drawer-overlay" data-overlay></div>
+
+  <div
+    class="drawer-content"
+    data-content
+    data-position="{{ drawer_position }}"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="{{ drawer_id }}-title"
+  >
+    <button class="drawer-close" data-close aria-label="Close drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <div class="drawer-header">
+      <div class="drawer-title" id="{{ drawer_id }}-title">{{ drawer_title }}</div>
+      {% if drawer_description != blank %}
+        <div class="drawer-description">{{ drawer_description }}</div>
+      {% endif %}
+    </div>
+
+    <div class="drawer-body">
+      {{ drawer_content }}
+    </div>
+
+    <div class="drawer-footer">
+      <button class="drawer-close" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('{{ drawer_id }}');
+    const trigger = wrapper.querySelector('[data-trigger]');
+    const overlay = wrapper.querySelector('[data-overlay]');
+    const content = wrapper.querySelector('[data-content]');
+    const closes = wrapper.querySelectorAll('[data-close]');
+    const position = content.getAttribute('data-position') || 'bottom';
+
+    function openDrawer() {
+      overlay.classList.add('active');
+      content.classList.add('active');
+    }
+
+    function closeDrawer() {
+      overlay.classList.remove('active');
+      content.classList.remove('active');
+    }
+
+    trigger.addEventListener('click', openDrawer);
+    overlay.addEventListener('click', closeDrawer);
+    closes.forEach(btn => btn.addEventListener('click', closeDrawer));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDrawer();
+    });
+  });
+</script>
