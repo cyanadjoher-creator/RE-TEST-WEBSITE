@@ -1,0 +1,132 @@
+{% comment %}
+  TOASTER COMPONENT (Shopify Liquid version)
+  ------------------------------------------
+  Lightweight toast notification system using CSS + JS.
+  Mimics "Sonner" with support for:
+  - Light / Dark mode auto-detection
+  - Success / Error / Info variants
+  - Auto-dismiss
+  - Manual close button
+
+  Usage:
+  {% render 'toaster' %}
+  <button onclick="showToast('Your item was added to cart', 'success')">Add to Cart</button>
+{% endcomment %}
+
+<style>
+  :root {
+    --toast-bg-light: #ffffff;
+    --toast-bg-dark: #1a1a1a;
+    --toast-fg-light: #111;
+    --toast-fg-dark: #fff;
+    --toast-border: rgba(0, 0, 0, 0.1);
+    --toast-success: #22c55e;
+    --toast-error: #ef4444;
+    --toast-info: #3b82f6;
+  }
+
+  .toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--toast-border);
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    min-width: 16rem;
+    max-width: 22rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-theme="light"] .toast {
+    background-color: var(--toast-bg-light);
+    color: var(--toast-fg-light);
+  }
+
+  [data-theme="dark"] .toast {
+    background-color: var(--toast-bg-dark);
+    color: var(--toast-fg-dark);
+  }
+
+  .toast.success { border-left: 4px solid var(--toast-success); }
+  .toast.error { border-left: 4px solid var(--toast-error); }
+  .toast.info { border-left: 4px solid var(--toast-info); }
+
+  .toast button {
+    all: unset;
+    margin-left: auto;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+  }
+
+  .toast button:hover {
+    opacity: 1;
+  }
+</style>
+
+<div id="toast-container" class="toast-container" data-theme="system"></div>
+
+<script>
+  (function() {
+    const container = document.getElementById('toast-container');
+
+    // Theme detection
+    function setTheme() {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      container.dataset.theme = prefersDark ? 'dark' : 'light';
+    }
+    setTheme();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setTheme);
+
+    window.showToast = function(message, type = 'info', duration = 4000) {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <span>${message}</span>
+        <button aria-label="Close">&times;</button>
+      `;
+      container.appendChild(toast);
+
+      // Animate in
+      requestAnimationFrame(() => toast.classList.add('show'));
+
+      // Auto-dismiss
+      const timer = setTimeout(() => closeToast(toast), duration);
+
+      // Manual close
+      toast.querySelector('button').addEventListener('click', () => {
+        clearTimeout(timer);
+        closeToast(toast);
+      });
+    };
+
+    function closeToast(toast) {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }
+  })();
+</script>
