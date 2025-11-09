@@ -1,0 +1,108 @@
+{% comment %}
+  HOVER CARD
+  ----------
+  Shopify Liquid implementation of a tooltip-style hover card,
+  replicating Radix HoverCard behavior using CSS + JS.
+
+  Usage:
+    {% render 'hover-card',
+      id: 'product-info-card',
+      trigger_label: 'Hover me',
+      content: '<strong>Details:</strong> This product is 100% handmade in Japan.',
+      align: 'center'
+    %}
+{% endcomment %}
+
+{% assign hover_id = id | default: 'hover-card-' | append: section.id %}
+{% assign trigger_label = trigger_label | default: 'Hover here' %}
+{% assign hover_content = content | default: '<p>Hover card content.</p>' %}
+{% assign align = align | default: 'center' %}
+
+<style>
+  .hover-card-trigger {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background .2s ease;
+  }
+  .hover-card-trigger:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  .hover-card-content {
+    position: absolute;
+    width: 260px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    padding: 12px 16px;
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 50;
+  }
+  .hover-card-content.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .hover-card-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+</style>
+
+<div class="hover-card-wrapper" id="{{ hover_id }}">
+  <div class="hover-card-trigger" data-trigger>
+    {{ trigger_label }}
+  </div>
+
+  <div
+    class="hover-card-content"
+    data-content
+    data-align="{{ align }}"
+  >
+    {{ hover_content }}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('{{ hover_id }}');
+    const trigger = wrapper.querySelector('[data-trigger]');
+    const content = wrapper.querySelector('[data-content]');
+    let timeout;
+
+    trigger.addEventListener('mouseenter', function() {
+      clearTimeout(timeout);
+      content.classList.add('show');
+      const rect = trigger.getBoundingClientRect();
+      const cRect = content.getBoundingClientRect();
+      if (content.dataset.align === 'center') {
+        content.style.left = `${rect.width / 2 - cRect.width / 2}px`;
+      } else if (content.dataset.align === 'left') {
+        content.style.left = `0px`;
+      } else if (content.dataset.align === 'right') {
+        content.style.right = `0px`;
+      }
+    });
+
+    trigger.addEventListener('mouseleave', function() {
+      timeout = setTimeout(() => content.classList.remove('show'), 100);
+    });
+
+    content.addEventListener('mouseenter', function() {
+      clearTimeout(timeout);
+      content.classList.add('show');
+    });
+
+    content.addEventListener('mouseleave', function() {
+      timeout = setTimeout(() => content.classList.remove('show'), 100);
+    });
+  });
+</script>
