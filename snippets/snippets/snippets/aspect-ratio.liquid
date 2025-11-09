@@ -1,0 +1,34 @@
+{% comment %}
+  ASPECT RATIO
+  -------------
+  Liquid version of Radix AspectRatio.
+  Wraps content inside a box that maintains a specific aspect ratio.
+
+  Usage:
+    {% render 'aspect-ratio', ratio: '16/9', content: '<img src="/path/to/image.jpg" alt="Image">' %}
+{% endcomment %}
+
+{% assign aspect = ratio | default: '1/1' %}
+{% assign content_html = content | default: '' %}
+
+<style>
+  .aspect-ratio {
+    position: relative;
+    width: 100%;
+  }
+  .aspect-ratio::before {
+    content: "";
+    display: block;
+    padding-top: calc(100% / ({{ aspect | split: '/' | last }} / {{ aspect | split: '/' | first }}));
+  }
+  .aspect-ratio > .aspect-inner {
+    position: absolute;
+    inset: 0;
+  }
+</style>
+
+<div class="aspect-ratio" data-ratio="{{ aspect }}">
+  <div class="aspect-inner">
+    {{ content_html }}
+  </div>
+</div>
