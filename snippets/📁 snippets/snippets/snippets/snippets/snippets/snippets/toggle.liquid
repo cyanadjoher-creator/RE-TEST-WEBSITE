@@ -1,0 +1,128 @@
+{% comment %}
+  TOGGLE COMPONENT (Shopify Liquid version)
+  -----------------------------------------
+  Mimics Radix UI Toggle functionality and style in pure Liquid + JS.
+
+  Usage:
+  {% render 'toggle',
+    label: 'Bold',
+    variant: 'outline',
+    size: 'default',
+    active: true
+  %}
+{% endcomment %}
+
+{% assign label = label | default: '' %}
+{% assign variant = variant | default: 'default' %}
+{% assign size = size | default: 'default' %}
+{% assign active = active | default: false %}
+{% assign class = class | default: '' %}
+
+<style>
+  .toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    outline: none;
+  }
+
+  .toggle[data-variant="default"] {
+    background-color: transparent;
+  }
+
+  .toggle[data-variant="outline"] {
+    border: 1px solid var(--toggle-border, rgba(0,0,0,0.15));
+    background-color: transparent;
+  }
+
+  .toggle[data-size="default"] {
+    height: 2.25rem;
+    min-width: 2.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .toggle[data-size="sm"] {
+    height: 2rem;
+    min-width: 2rem;
+    padding: 0 0.375rem;
+  }
+
+  .toggle[data-size="lg"] {
+    height: 2.5rem;
+    min-width: 2.5rem;
+    padding: 0 0.625rem;
+  }
+
+  .toggle:hover {
+    background-color: var(--toggle-hover-bg, rgba(0,0,0,0.05));
+    color: var(--toggle-hover-fg, #111);
+  }
+
+  .toggle[data-state="on"] {
+    background-color: var(--toggle-active-bg, #111);
+    color: var(--toggle-active-fg, #fff);
+  }
+
+  .toggle[data-state="on"][data-variant="outline"] {
+    background-color: var(--toggle-active-bg, #111);
+    color: var(--toggle-active-fg, #fff);
+    border-color: var(--toggle-active-border, #111);
+  }
+
+  .toggle:focus-visible {
+    box-shadow: 0 0 0 3px rgba(100,150,255,0.4);
+  }
+
+  .toggle:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .toggle {
+      color: rgba(255,255,255,0.9);
+    }
+    .toggle[data-variant="outline"] {
+      border-color: rgba(255,255,255,0.2);
+    }
+    .toggle:hover {
+      background-color: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    .toggle[data-state="on"] {
+      background-color: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+  }
+</style>
+
+<button
+  type="button"
+  class="toggle {{ class }}"
+  data-slot="toggle"
+  data-variant="{{ variant }}"
+  data-size="{{ size }}"
+  data-state="{% if active %}on{% else %}off{% endif %}"
+  {% if disabled %}disabled{% endif %}
+>
+  {{ label }}
+</button>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('[data-slot="toggle"]').forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const state = btn.getAttribute("data-state");
+        btn.setAttribute("data-state", state === "on" ? "off" : "on");
+      });
+    });
+  });
+</script>
