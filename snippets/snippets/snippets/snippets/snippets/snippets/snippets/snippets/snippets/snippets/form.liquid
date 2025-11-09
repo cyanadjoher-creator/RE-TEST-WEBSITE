@@ -1,0 +1,136 @@
+{% comment %}
+  FORM
+  ----
+  Shopify Liquid simplified implementation of a structured form system
+  inspired by Radix + React Hook Form setup.
+  Provides labeled fields, descriptions, and validation messages.
+
+  Usage:
+    {% render 'form',
+      id: 'contact-form',
+      fields: '[
+        {"name": "email", "label": "Email", "type": "email", "placeholder": "you@example.com", "required": true, "description": "We’ll never share your email.", "error_message": "Please enter a valid email."},
+        {"name": "message", "label": "Message", "type": "textarea", "placeholder": "Your message...", "required": true}
+      ]'
+    %}
+{% endcomment %}
+
+{% assign form_id = id | default: 'form-' | append: section.id %}
+{% assign fields_json = fields | default: '[]' | parse_json %}
+
+<style>
+  .form {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+    max-width: 600px;
+  }
+  .form-item {
+    display: grid;
+    gap: 6px;
+  }
+  .form-label {
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .form-control {
+    padding: 10px 12px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .form-control:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 1px #000;
+  }
+  .form-description {
+    color: rgba(0,0,0,0.6);
+    font-size: 13px;
+  }
+  .form-message {
+    color: #b00020;
+    font-size: 13px;
+  }
+  .form-submit {
+    background: #111;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+  .form-submit:hover {
+    opacity: 0.9;
+  }
+</style>
+
+<form id="{{ form_id }}" class="form" novalidate>
+  {% for field in fields_json %}
+    <div class="form-item">
+      {% if field.label %}
+        <label class="form-label" for="{{ field.name }}">{{ field.label }}{% if field.required %}*{% endif %}</label>
+      {% endif %}
+
+      {% if field.type == 'textarea' %}
+        <textarea
+          id="{{ field.name }}"
+          name="{{ field.name }}"
+          placeholder="{{ field.placeholder }}"
+          class="form-control"
+          {% if field.required %}required{% endif %}
+        ></textarea>
+      {% else %}
+        <input
+          type="{{ field.type | default: 'text' }}"
+          id="{{ field.name }}"
+          name="{{ field.name }}"
+          placeholder="{{ field.placeholder }}"
+          class="form-control"
+          {% if field.required %}required{% endif %}
+        >
+      {% endif %}
+
+      {% if field.description %}
+        <p class="form-description">{{ field.description }}</p>
+      {% endif %}
+
+      {% if field.error_message %}
+        <p class="form-message" data-error-for="{{ field.name }}" style="display:none;">
+          {{ field.error_message }}
+        </p>
+      {% endif %}
+    </div>
+  {% endfor %}
+
+  <button type="submit" class="form-submit">Submit</button>
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('{{ form_id }}');
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      let valid = true;
+      form.querySelectorAll('.form-message').forEach(msg => msg.style.display = 'none');
+
+      form.querySelectorAll('[required]').forEach(field => {
+        if (!field.value.trim()) {
+          valid = false;
+          const err = form.querySelector(`[data-error-for="${field.name}"]`);
+          if (err) err.style.display = 'block';
+        }
+      });
+
+      if (valid) {
+        alert('Form submitted successfully!');
+        form.reset();
+      }
+    });
+  });
+</script>
