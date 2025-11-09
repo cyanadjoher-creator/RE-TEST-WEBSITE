@@ -1,0 +1,85 @@
+{% comment %}
+  INPUT
+  -----
+  Shopify Liquid adaptation of the Input component.
+
+  Usage:
+    {% render 'input',
+      id: 'email-input',
+      name: 'email',
+      type: 'email',
+      placeholder: 'you@example.com',
+      required: true,
+      class: 'my-input'
+    %}
+{% endcomment %}
+
+{% assign input_id = id | default: 'input-' | append: section.id %}
+{% assign input_name = name | default: input_id %}
+{% assign input_type = type | default: 'text' %}
+{% assign input_placeholder = placeholder | default: '' %}
+{% assign input_value = value | default: '' %}
+{% assign input_class = class | default: '' %}
+
+<style>
+  .liquid-input {
+    display: block;
+    width: 100%;
+    height: 38px;
+    padding: 8px 12px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    background-color: #fff;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #111;
+    transition: all 0.2s ease;
+  }
+
+  .liquid-input:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.15);
+  }
+
+  .liquid-input[aria-invalid="true"] {
+    border-color: #b00020;
+    box-shadow: 0 0 0 1.5px rgba(176,0,32,0.3);
+  }
+
+  .liquid-input::placeholder {
+    color: rgba(0,0,0,0.4);
+  }
+
+  .liquid-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .liquid-input::file-selector-button {
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding-right: 8px;
+    color: #111;
+    cursor: pointer;
+  }
+
+  .liquid-input::selection {
+    background: #111;
+    color: #fff;
+  }
+</style>
+
+<input
+  id="{{ input_id }}"
+  name="{{ input_name }}"
+  type="{{ input_type }}"
+  class="liquid-input {{ input_class }}"
+  placeholder="{{ input_placeholder }}"
+  value="{{ input_value }}"
+  {% if required %}required{% endif %}
+  {% if disabled %}disabled{% endif %}
+  {% if aria_invalid %}aria-invalid="true"{% endif %}
+/>
