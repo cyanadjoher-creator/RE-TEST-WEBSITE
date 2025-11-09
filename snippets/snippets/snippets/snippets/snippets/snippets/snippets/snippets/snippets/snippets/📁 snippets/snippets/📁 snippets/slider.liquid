@@ -1,0 +1,114 @@
+{% comment %}
+  SLIDER COMPONENT (Shopify Liquid version)
+  -----------------------------------------
+  Simple, accessible range slider with Tailwind-like styling.
+
+  Props:
+  - id (string): unique identifier
+  - name (string): input name
+  - min (number): minimum value (default: 0)
+  - max (number): maximum value (default: 100)
+  - value (number): initial value
+  - step (number): step interval
+  - class (string): additional classes
+
+  Usage:
+  {% render 'slider', id: 'price-slider', name: 'price', min: 0, max: 200, value: 100 %}
+{% endcomment %}
+
+{% assign id = id | default: 'slider-' | append: section.id %}
+{% assign name = name | default: 'slider' %}
+{% assign min = min | default: 0 %}
+{% assign max = max | default: 100 %}
+{% assign step = step | default: 1 %}
+{% assign value = value | default: min | plus: 0 %}
+{% assign class = class | default: '' %}
+
+<style>
+  .slider-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    touch-action: none;
+  }
+
+  .slider-track {
+    position: relative;
+    width: 100%;
+    height: 0.5rem;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 9999px;
+    overflow: hidden;
+  }
+
+  .slider-range {
+    position: absolute;
+    height: 100%;
+    background-color: hsl(220 90% 56%);
+    border-radius: inherit;
+  }
+
+  .slider-thumb {
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: #fff;
+    border: 2px solid hsl(220 90% 56%);
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+
+  input[type="range"] {
+    appearance: none;
+    background: transparent;
+    width: 100%;
+    position: relative;
+    z-index: 2;
+  }
+
+  input[type="range"]:focus-visible {
+    outline: none;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    @apply slider-thumb;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    @apply slider-thumb;
+  }
+
+  input[type="range"]:active::-webkit-slider-thumb {
+    box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.3);
+  }
+
+  .slider-value {
+    font-size: 0.875rem;
+    margin-left: 0.5rem;
+    color: rgba(0,0,0,0.7);
+  }
+</style>
+
+<div class="slider-wrapper {{ class }}" data-slot="slider">
+  <input
+    id="{{ id }}"
+    type="range"
+    name="{{ name }}"
+    min="{{ min }}"
+    max="{{ max }}"
+    step="{{ step }}"
+    value="{{ value }}"
+    oninput="updateSliderValue('{{ id }}', this.value)"
+  />
+  <div class="slider-value" id="{{ id }}-value">{{ value }}</div>
+</div>
+
+<script>
+  function updateSliderValue(id, val) {
+    const el = document.getElementById(id + '-value');
+    if (el) el.textContent = val;
+  }
+</script>
