@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="theme-color" content="#000000">
+    <title>{% if page_title != blank %}{{ page_title }} – {% endif %}{{ shop.name }}</title>
+
+    {%- if canonical_url != blank -%}
+      <link rel="canonical" href="{{ canonical_url }}">
+    {%- endif -%}
+
+    {{ 'base.css' | asset_url | stylesheet_tag }}
+    {{ content_for_header }}
+
+    {%- comment -%}
+      Optional: Favicon & Apple Touch Icons
+    {%- endcomment -%}
+    <link rel="icon" href="{{ 'favicon.png' | asset_url }}" type="image/png">
+    <link rel="apple-touch-icon" href="{{ 'apple-touch-icon.png' | asset_url }}">
+
+    {%- render 'badseki-theme-vars' -%}
+  </head>
+
+  <body class="font-sans antialiased">
+    {%- comment -%}
+      Header navigation (fixed)
+    {%- endcomment -%}
+    {% section 'badseki-navigation' %}
+
+    {%- comment -%}
+      Main content from templates
+    {%- endcomment -%}
+    <main id="MainContent" role="main" class="relative z-10">
+      {{ content_for_layout }}
+    </main>
+
+    {%- comment -%}
+      Global footer
+    {%- endcomment -%}
+    {% section 'badseki-footer' %}
+
+    {%- render 'badseki-toast' -%}
+
+    <script>
+      /* Smooth scroll to top on navigation click */
+      document.addEventListener('click', function(e){
+        const a = e.target.closest('a[href]');
+        if(a && a.getAttribute('href').startsWith('#')){
+          e.preventDefault();
+          document.querySelector(a.getAttribute('href'))?.scrollIntoView({ behavior:'smooth' });
+        }
+      });
+    </script>
+  </body>
+</html>
