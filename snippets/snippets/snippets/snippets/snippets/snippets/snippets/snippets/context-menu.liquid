@@ -1,0 +1,125 @@
+{% comment %}
+  CONTEXT MENU
+  ------------
+  Shopify Liquid equivalent of Radix UI Context Menu.
+  Displays a right-click (or long-press) menu for interactive commands.
+
+  Usage:
+    {% render 'context-menu',
+      id: 'product-menu',
+      trigger_label: 'Right-click here',
+      items: '[{"label":"Edit","shortcut":"⌘E"},{"label":"Duplicate","shortcut":"⌘D"},{"type":"separator"},{"label":"Delete","variant":"destructive","shortcut":"⌘⌫"}]'
+    %}
+{% endcomment %}
+
+{% assign menu_id = id | default: 'context-menu-' | append: section.id %}
+{% assign trigger_label = trigger_label | default: 'Open Menu' %}
+{% assign items_json = items | default: '[]' | parse_json %}
+
+<style>
+  .context-menu-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0,0,0,0.15);
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: context-menu;
+    background: #fff;
+    transition: background .2s ease;
+  }
+  .context-menu-trigger:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .context-menu {
+    position: fixed;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    padding: 4px 0;
+    z-index: 9999;
+    min-width: 160px;
+    display: none;
+  }
+  .context-menu.open {
+    display: block;
+  }
+  .context-menu-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .context-menu-item:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .context-menu-item.destructive {
+    color: #b00020;
+  }
+  .context-menu-item.destructive:hover {
+    background: rgba(255,0,0,0.05);
+  }
+  .context-menu-shortcut {
+    font-size: 12px;
+    color: rgba(0,0,0,0.5);
+  }
+  .context-menu-separator {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    margin: 4px 0;
+  }
+</style>
+
+<div class="context-menu-wrapper" id="{{ menu_id }}">
+  <div class="context-menu-trigger" data-trigger>{{ trigger_label }}</div>
+  <div class="context-menu" data-menu>
+    {% for item in items_json %}
+      {% if item.type == 'separator' %}
+        <div class="context-menu-separator"></div>
+      {% else %}
+        <div class="context-menu-item {% if item.variant == 'destructive' %}destructive{% endif %}">
+          <span>{{ item.label }}</span>
+          {% if item.shortcut %}
+            <span class="context-menu-shortcut">{{ item.shortcut }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('{{ menu_id }}');
+    const trigger = wrapper.querySelector('[data-trigger]');
+    const menu = wrapper.querySelector('[data-menu]');
+    let open = false;
+
+    function closeMenu() {
+      menu.classList.remove('open');
+      open = false;
+    }
+
+    trigger.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      const { clientX: mouseX, clientY: mouseY } = e;
+      menu.style.top = `${mouseY}px`;
+      menu.style.left = `${mouseX}px`;
+      menu.classList.add('open');
+      open = true;
+    });
+
+    document.addEventListener('click', function(e) {
+      if (open && !menu.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener('scroll', closeMenu);
+    window.addEventListener('resize', closeMenu);
+  });
+</script>
