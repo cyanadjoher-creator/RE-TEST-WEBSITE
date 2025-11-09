@@ -1,0 +1,35 @@
+{%- comment -%}
+  ImageWithFallback
+  -----------------
+  Usage:
+    {% render 'image-with-fallback',
+      src: product.featured_image | img_url: '800x',
+      alt: product.title,
+      class: 'w-full h-auto rounded-xl'
+    %}
+
+  Props:
+    src        → image URL
+    alt        → alt text
+    class      → extra classes
+    style      → inline styles
+  Behavior:
+    - If the image fails to load, a fallback SVG is displayed instead.
+{%- endcomment -%}
+
+{%- assign img_src = src | default: '' -%}
+{%- assign img_alt = alt | default: shop.name -%}
+
+{%- capture fallback_svg -%}
+data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODgiIGhlaWdodD0iODgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBvcGFjaXR5PSIuMyIgZmlsbD0ibm9uZSIgc3Ryb2tlLXdpZHRoPSIzLjciPjxyZWN0IHg9IjE2IiB5PSIxNiIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iNiIvPjxwYXRoIGQ9Im0xNiA1OCAxNi0xOCAzMiAzMiIvPjxjaXJjbGUgY3g9IjUzIiBjeT0iMzUiIHI9IjciLz48L3N2Zz4KCg==
+{%- endcapture -%}
+
+<div class="image-with-fallback {{ class }}" style="{{ style }}">
+  <img
+    src="{{ img_src }}"
+    alt="{{ img_alt }}"
+    loading="lazy"
+    onerror="this.onerror=null; this.src='{{ fallback_svg }}'; this.dataset.originalUrl='{{ img_src }}';"
+    style="width:100%;height:auto;display:block;object-fit:cover;"
+  >
+</div>
