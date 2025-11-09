@@ -1,0 +1,56 @@
+{% schema %}
+{
+  "name": "Badseki Editorial",
+  "settings": [
+    { "type":"blog","id":"blog","label":"Blog" },
+    { "type":"range","id":"limit","min":1,"max":12,"step":1,"label":"Articles to show","default":5 }
+  ]
+}
+{% endschema %}
+
+{% assign b = blogs[section.settings.blog] %}
+<section class="mt-20 px-6 mb-24">
+  {% if b.articles_count > 0 %}
+    {% assign first = b.articles | first %}
+    <div class="grid md:grid-cols-2 gap-12 mb-24">
+      <a href="{{ first.url }}" class="group">
+        {% if first.image %}
+          <img src="{{ first.image | img_url: '1200x' }}" alt="{{ first.title | escape }}" class="w-full" style="aspect-ratio:4/5;object-fit:cover">
+        {% else %}
+          <div style="aspect-ratio:4/5;background:#eee"></div>
+        {% endif %}
+      </a>
+      <div class="flex flex-col justify-center">
+        <div class="uppercase tracking-wider mb-4" style="font-size:10px;letter-spacing:.15em;opacity:.4">
+          {{ b.title }} — {{ first.published_at | date: "%B %Y" }}
+        </div>
+        <a href="{{ first.url }}" class="group-hover:opacity-60" style="font-size:42px;font-weight:300;letter-spacing:-.01em;display:block;margin-bottom:16px">
+          {{ first.title }}
+        </a>
+        <p style="font-size:15px;line-height:1.8;opacity:.7;max-width:40ch">{{ first.excerpt_or_content | strip_html | truncate: 200 }}</p>
+        <div class="mt-6">
+          <a href="{{ first.url }}" class="uppercase tracking-wider hover:opacity-60" style="font-size:11px;letter-spacing:.15em">Read Article →</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-x-6 gap-y-16">
+      {% for article in b.articles offset:1 limit: section.settings.limit | minus: 1 %}
+        <a href="{{ article.url }}" class="group">
+          {% if article.image %}
+            <img src="{{ article.image | img_url: '800x' }}" alt="{{ article.title | escape }}" class="w-full mb-4" style="aspect-ratio:4/5;object-fit:cover">
+          {% else %}
+            <div class="mb-4" style="aspect-ratio:4/5;background:#eee"></div>
+          {% endif %}
+          <div class="uppercase tracking-wider mb-2" style="font-size:10px;letter-spacing:.15em;opacity:.4">
+            {{ b.title }} — {{ article.published_at | date: "%B %Y" }}
+          </div>
+          <div class="group-hover:opacity-60" style="font-size:18px;font-weight:300;margin-bottom:8px">{{ article.title }}</div>
+          <p style="font-size:13px;line-height:1.7;opacity:.7">{{ article.excerpt_or_content | strip_html | truncate: 140 }}</p>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p>No posts yet.</p>
+  {% endif %}
+</section>
