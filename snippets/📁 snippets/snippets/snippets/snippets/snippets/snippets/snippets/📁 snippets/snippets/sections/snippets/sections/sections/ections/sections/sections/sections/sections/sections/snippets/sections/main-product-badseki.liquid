@@ -1,0 +1,432 @@
+{% comment %}
+  BADSEKI — Product Detail (OS 2.0 Section)
+  - Galerie d’images en colonne
+  - Pickers Color/Size (boutons)
+  - Quantité + Add to cart
+  - Accordéons (blocks: details, materials, shipping) — fallback sur metafields si vides
+  - Recos produits en bas (You may also like)
+  Dépendance optionnelle : snippet 'product-card-badseki' (fourni précédemment) pour la grille de recommandations.
+{% endcomment %}
+
+<section class="min-h-screen pt-16 bg-white">
+  <div class="px-6 py-8 page-width">
+    <!-- Back -->
+    <a href="{{ routes.all_products_collection_url | default: '/' }}"
+       class="flex items-center gap-2 mb-8 hover:opacity-60 transition-opacity uppercase"
+       style="font-size:12px;letter-spacing:0.05em;font-weight:400">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="inline-block"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      BACK TO SHOP
+    </a>
+
+    <div class="grid lg:grid-cols-2 gap-12 mb-20" itemscope itemtype="https://schema.org/Product">
+      <!-- Left: Stacked gallery -->
+      <div class="space-y-4 px-4">
+        {% if product.media.size > 0 %}
+          {% for m in product.media %}
+            <div class="mx-auto" style="max-width:calc(100% - 2cm)">
+              {% case m.media_type %}
+                {% when 'image' %}
+                  {{ m | image_url: width: 1600 | image_tag:
+                    loading: 'lazy',
+                    class: 'w-full h-auto object-cover',
+                    widths: '400,800,1200,1600',
+                    alt: m.alt | escape }}
+                {% when 'video' %}
+                  {{ m | video_tag: controls: true, class: 'w-full h-auto' }}
+                {% else %}
+                  <!-- Fallback bloc noir -->
+                  <div class="w-full bg-black flex items-center justify-center" style="aspect-ratio:3/4;">
+                    <span class="uppercase text-white/60 text-[12px] tracking-widest font-light">MEDIA</span>
+                  </div>
+              {% endcase %}
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="w-full bg-black flex items-center justify-center" style="aspect-ratio:3/4;">
+            <span class="uppercase text-white/60 text-[12px] tracking-widest font-light">IMAGE</span>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Right: Info sticky -->
+      <div class="lg:sticky lg:top-24 h-fit" data-product-root data-product-handle="{{ product.handle }}">
+        <meta itemprop="name" content="{{ product.title | escape }}">
+        <meta itemprop="sku" content="{{ product.selected_or_first_available_variant.sku | escape }}">
+        <meta itemprop="brand" content="{{ product.vendor | escape }}">
+        <meta itemprop="image" content="{{ product.featured_image | image_url: width: 1200 }}">
+
+        <!-- Title / Price -->
+        <div class="mb-6">
+          <h1 class="uppercase mb-2" style="font-size:20px;letter-spacing:0.05em;font-weight:400">{{ product.title }}</h1>
+          <div style="font-size:16px;letter-spacing:0.02em;font-weight:400">
+            <span data-product-price>
+              {{ product.selected_or_first_available_variant.price | money }}
+            </span>
+            {% if product.compare_at_price_max > product.price %}
+              <span class="opacity-60 line-through ml-2 text-sm">
+                {{ product.selected_or_first_available_variant.compare_at_price | money }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Description courte -->
+        {% assign excerpt = product.metafields.custom.excerpt | default: product.description | strip_html | truncate: 260 %}
+        {% if excerpt != blank %}
+          <p class="mb-8 opacity-70" style="font-size:13px;letter-spacing:0.02em;line-height:1.7">
+            {{ excerpt }}
+          </p>
+        {% endif %}
+
+        <!-- Form Add to cart -->
+        {%- form 'product', product, id: 'badseki-product-form', class: 'space-y-0' -%}
+          <!-- Color buttons (detect option by name) -->
+          {% assign color_option_index = nil %}
+          {% for option in product.options_with_values %}
+            {% assign down = option.name | downcase %}
+            {% if down contains 'color' or down contains 'couleur' %}
+              {% assign color_option_index = forloop.index0 %}
+            {% endif %}
+          {% endfor %}
+
+          {% if color_option_index != nil %}
+            <div class="mb-6 pb-6 border-b border-black/20">
+              <div class="uppercase mb-3" style="font-size:12px;letter-spacing:0.1em;font-weight:400">
+                COLOR:
+                <span data-color-label>
+                  {{ product.selected_or_first_available_variant.options[color_option_index] }}
+                </span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                {% assign seen_colors = '' %}
+                {% for v in product.variants %}
+                  {% assign color_val = v.options[color_option_index] %}
+                  {% unless seen_colors contains color_val %}
+                    <button
+                      type="button"
+                      class="px-4 py-2 border transition-all uppercase flex items-center justify-center"
+                      data-color="{{ color_val | escape }}"
+                      data-color-button
+                      style="font-size:11px;letter-spacing:0.05em"
+                    >
+                      {{ color_val }}
+                    </button>
+                    {% assign seen_colors = seen_colors | append: color_val | append: ',' %}
+                  {% endunless %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Size buttons -->
+          {% assign size_option_index = nil %}
+          {% for option in product.options_with_values %}
+            {% assign down = option.name | downcase %}
+            {% if down contains 'size' or down contains 'taille' %}
+              {% assign size_option_index = forloop.index0 %}
+            {% endif %}
+          {% endfor %}
+
+          {% if size_option_index != nil %}
+            <div class="mb-6 pb-6 border-b border-black/20">
+              <div class="uppercase mb-3" style="font-size:12px;letter-spacing:0.1em;font-weight:400">
+                SIZE: <span data-size-label>SELECT SIZE</span>
+              </div>
+              <div class="flex gap-2 justify-center">
+                {% assign seen_sizes = '' %}
+                {% for v in product.variants %}
+                  {% assign size_val = v.options[size_option_index] %}
+                  {% unless seen_sizes contains size_val %}
+                    <button
+                      type="button"
+                      class="w-12 h-12 border transition-all uppercase flex items-center justify-center"
+                      data-size="{{ size_val | escape }}"
+                      data-size-button
+                      style="font-size:11px;letter-spacing:0.05em"
+                    >
+                      {{ size_val }}
+                    </button>
+                    {% assign seen_sizes = seen_sizes | append: size_val | append: ',' %}
+                  {% endunless %}
+                {% endfor %}
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Hidden native selects (to ensure correct variant id resolution) -->
+          <div class="sr-only" aria-hidden="true">
+            {% for option in product.options_with_values %}
+              <select data-option-select data-index="{{ forloop.index0 }}">
+                {% for val in option.values %}
+                  <option value="{{ val | escape }}"
+                    {% if product.selected_or_first_available_variant.options[forloop.parent.index0] == val %}selected{% endif %}
+                  >{{ val }}</option>
+                {% endfor %}
+              </select>
+            {% endfor %}
+            <select name="id" id="VariantIdSelect">
+              {% for v in product.variants %}
+                <option value="{{ v.id }}"
+                  data-variant
+                  data-opts="{{ v.options | join: '||' | escape }}"
+                  {% if v.id == product.selected_or_first_available_variant.id %}selected{% endif %}
+                >
+                  {{ v.title | escape }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <!-- Quantity -->
+          <div class="mb-6 pb-6 border-b border-black/20">
+            <div class="uppercase mb-3" style="font-size:12px;letter-spacing:0.1em;font-weight:400">QUANTITY</div>
+            <div class="flex items-center gap-4 justify-center">
+              <button type="button" class="w-10 h-10 border border-black/20 hover:border-black flex items-center justify-center transition-colors" data-qty-minus>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <span style="font-size:14px;letter-spacing:0.05em;min-width:20px;text-align:center" data-qty-label>1</span>
+              <button type="button" class="w-10 h-10 border border-black/20 hover:border-black flex items-center justify-center transition-colors" data-qty-plus>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <input type="number" min="1" value="1" name="quantity" class="sr-only" data-qty-input>
+            </div>
+          </div>
+
+          <!-- Add to cart -->
+          <div class="flex justify-center mb-6">
+            <button
+              type="submit"
+              name="add"
+              class="bg-black text-white px-16 py-4 uppercase hover:bg-black/80 transition-colors flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+              style="font-size:14px;letter-spacing:0.1em;font-weight:400"
+              {% unless product.selected_or_first_available_variant.available %}disabled{% endunless %}
+            >
+              {% if product.selected_or_first_available_variant.available %}ADD TO CART{% else %}SOLD OUT{% endif %}
+            </button>
+          </div>
+        {%- endform -%}
+
+        <!-- Accordions -->
+        <div class="space-y-4">
+          {% assign details_text = '' %}
+          {% for block in section.blocks %}
+            {% case block.type %}
+              {% when 'details' %}
+                {% assign details_text = block.settings.text | strip %}
+              {% when 'materials' %}
+                <div class="border-b border-black/20">
+                  <button class="w-full flex justify-between items-center py-4 uppercase hover:opacity-60 transition-opacity" style="font-size:12px;letter-spacing:0.1em;font-weight:400" data-accordion-toggle>
+                    MATERIALS &amp; CARE
+                    <span data-acc-icon>+</span>
+                  </button>
+                  <div class="pb-4 opacity-70 hidden" style="font-size:13px;letter-spacing:0.02em;line-height:1.7" data-accordion-content>
+                    {{ block.settings.text | default: product.metafields.custom.materials | default: '—' }}
+                  </div>
+                </div>
+              {% when 'shipping' %}
+                <div class="border-b border-black/20">
+                  <button class="w-full flex justify-between items-center py-4 uppercase hover:opacity-60 transition-opacity" style="font-size:12px;letter-spacing:0.1em;font-weight:400" data-accordion-toggle>
+                    SHIPPING &amp; RETURNS
+                    <span data-acc-icon>+</span>
+                  </button>
+                  <div class="pb-4 opacity-70 hidden" style="font-size:13px;letter-spacing:0.02em;line-height:1.7" data-accordion-content>
+                    {{ block.settings.text | default: product.metafields.custom.shipping | default: '—' }}
+                  </div>
+                </div>
+            {% endcase %}
+          {% endfor %}
+
+          <div class="border-b border-black/20">
+            <button class="w-full flex justify-between items-center py-4 uppercase hover:opacity-60 transition-opacity" style="font-size:12px;letter-spacing:0.1em;font-weight:400" data-accordion-toggle>
+              DETAILS
+              <span data-acc-icon>−</span>
+            </button>
+            <div class="pb-4 opacity-70" style="font-size:13px;letter-spacing:0.02em;line-height:1.7" data-accordion-content>
+              {% assign default_details = product.metafields.custom.details | default: product.description | strip_html %}
+              {% if details_text != blank %}
+                {{ details_text }}
+              {% else %}
+                {{ default_details | truncate: 600 }}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related / You may also like -->
+    <section class="pb-20" data-related>
+      <h2 class="uppercase mb-8" style="font-size:20px;letter-spacing:0.05em;font-weight:400">YOU MAY ALSO LIKE</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="badseki-recos">
+        <!-- Fallback: si le thème ne supporte pas product_recommendations, on montre des produits de la même collection -->
+        {% if recommendations.performed and recommendations.products_count > 0 %}
+          {% for reco in recommendations.products limit: 4 %}
+            {% render 'product-card-badseki', product: reco %}
+          {% endfor %}
+        {% else %}
+          {% assign coll = product.collections.first %}
+          {% if coll and coll.products.size > 1 %}
+            {% for p in coll.products limit:5 %}
+              {% if p.id != product.id %}
+                {% render 'product-card-badseki', product: p %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endif %}
+      </div>
+    </section>
+  </div>
+
+  <script>
+  (function() {
+    const root = document.currentScript.closest('[data-product-root]');
+    if (!root) return;
+
+    const form = root.querySelector('#badseki-product-form');
+    const variantSelect = root.querySelector('#VariantIdSelect');
+    const optSelects = root.querySelectorAll('[data-option-select]');
+    const colorButtons = root.querySelectorAll('[data-color-button]');
+    const sizeButtons  = root.querySelectorAll('[data-size-button]');
+    const colorLabel = root.querySelector('[data-color-label]');
+    const sizeLabel  = root.querySelector('[data-size-label]');
+    const qtyMinus = root.querySelector('[data-qty-minus]');
+    const qtyPlus  = root.querySelector('[data-qty-plus]');
+    const qtyInput = root.querySelector('[data-qty-input]');
+    const qtyLabel = root.querySelector('[data-qty-label]');
+    const priceEl  = root.querySelector('[data-product-price]');
+
+    const setActive = (buttons, value) => {
+      buttons.forEach(btn => {
+        const isActive = (btn.dataset.color || btn.dataset.size) === value;
+        btn.classList.toggle('border-black', isActive);
+        btn.classList.toggle('bg-black', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('border-black/20', !isActive);
+        btn.classList.toggle('hover:border-black', !isActive);
+      });
+    };
+
+    const syncVariant = () => {
+      // Build current options array
+      const opts = Array.from(optSelects).map(s => s.value);
+      let target = null;
+
+      Array.from(variantSelect.options).forEach(opt => {
+        const optStr = opt.getAttribute('data-opts') || '';
+        if (optStr.split('||').every((v, i) => v === opts[i])) {
+          target = opt;
+        }
+      });
+
+      if (target) {
+        variantSelect.value = target.value;
+        const vPrice = target.textContent && {{ product.selected_or_first_available_variant.price | money_without_trailing_zeros | json }};
+        // We cannot safely parse price from text; let Shopify update on submit or use AJAX cart APIs if needed.
+      }
+    };
+
+    // Color buttons
+    colorButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const value = btn.dataset.color;
+        const colorIndex = parseInt(document.querySelector('[data-option-select][data-index].' ) ? 0 : 0); // fallback
+        const colorSelect = root.querySelector('[data-option-select][data-index="{{ color_option_index }}"]') || optSelects[{{ color_option_index | default: 0 }}];
+        if (colorSelect) colorSelect.value = value;
+        if (colorLabel) colorLabel.textContent = value;
+        setActive(colorButtons, value);
+        syncVariant();
+      });
+    });
+
+    // Size buttons
+    sizeButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const value = btn.dataset.size;
+        const sizeSelect = root.querySelector('[data-option-select][data-index="{{ size_option_index }}"]') || optSelects[{{ size_option_index | default: 0 }}];
+        if (sizeSelect) sizeSelect.value = value;
+        if (sizeLabel) sizeLabel.textContent = value;
+        setActive(sizeButtons, value);
+        syncVariant();
+      });
+    });
+
+    // Qty
+    function clamp(n){ return Math.max(1, n|0); }
+    qtyMinus && qtyMinus.addEventListener('click', () => {
+      const v = clamp((parseInt(qtyInput.value||'1',10) - 1));
+      qtyInput.value = v; qtyLabel.textContent = v;
+    });
+    qtyPlus && qtyPlus.addEventListener('click', () => {
+      const v = clamp((parseInt(qtyInput.value||'1',10) + 1));
+      qtyInput.value = v; qtyLabel.textContent = v;
+    });
+
+    // Accordions
+    root.querySelectorAll('[data-accordion-toggle]').forEach(btn => {
+      const row = btn.parentElement;
+      const content = row.querySelector('[data-accordion-content]');
+      const icon = btn.querySelector('[data-acc-icon]');
+      if (!content) return;
+      // Default: first "DETAILS" open, others closed
+      if (icon && icon.textContent.trim() === '−') {
+        content.classList.remove('hidden');
+      } else {
+        content.classList.add('hidden');
+      }
+      btn.addEventListener('click', () => {
+        const isOpen = !content.classList.contains('hidden');
+        content.classList.toggle('hidden');
+        if (icon) icon.textContent = isOpen ? '+' : '−';
+      });
+    });
+
+    // Initialize active states based on selected variant
+    {% if color_option_index != nil %}
+      const colorInit = {{ product.selected_or_first_available_variant.options[color_option_index] | json }};
+      setActive(colorButtons, colorInit);
+      if (colorLabel) colorLabel.textContent = colorInit;
+    {% endif %}
+    {% if size_option_index != nil %}
+      const sizeInit = {{ product.selected_or_first_available_variant.options[size_option_index] | json }};
+      setActive(sizeButtons, sizeInit);
+      if (sizeLabel) sizeLabel.textContent = sizeInit;
+    {% endif %}
+  })();
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "BADSEKI — Main product",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Accordions content"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "details",
+      "name": "Details (override)",
+      "settings": [
+        { "type": "richtext", "id": "text", "label": "Details text (optional)" }
+      ]
+    },
+    {
+      "type": "materials",
+      "name": "Materials & Care",
+      "settings": [
+        { "type": "richtext", "id": "text", "label": "Materials text (fallback: metafield custom.materials)" }
+      ]
+    },
+    {
+      "type": "shipping",
+      "name": "Shipping & Returns",
+      "settings": [
+        { "type": "richtext", "id": "text", "label": "Shipping text (fallback: metafield custom.shipping)" }
+      ]
+    }
+  ],
+  "templates": ["product"]
+}
+{% endschema %}
