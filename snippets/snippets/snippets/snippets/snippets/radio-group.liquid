@@ -1,0 +1,92 @@
+{% comment %}
+  RADIO GROUP
+  ------------
+  Shopify Liquid version of Radix RadioGroup.
+  Displays a set of radio buttons with consistent styling.
+
+  Usage Example:
+  {% render 'radio-group',
+    name: 'size',
+    options: 'Small,Medium,Large',
+    selected: 'Medium'
+  %}
+{% endcomment %}
+
+{% assign radio_name = name | default: 'option' %}
+{% assign options = options | split: ',' %}
+{% assign selected = selected | default: options.first %}
+{% assign group_id = id | default: "radio-group-" | append: section.id %}
+
+<style>
+  .radio-group {
+    display: grid;
+    gap: 12px;
+  }
+
+  .radio-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #111;
+  }
+
+  .radio-input {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    position: relative;
+    transition: all 0.2s ease;
+  }
+
+  .radio-input:checked {
+    border-color: #111;
+    background-color: #111;
+  }
+
+  .radio-input:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: white;
+    transform: translate(-50%, -50%);
+  }
+
+  .radio-input:focus-visible {
+    outline: 3px solid rgba(17, 17, 17, 0.3);
+  }
+
+  .radio-item.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
+
+<div
+  id="{{ group_id }}"
+  class="radio-group"
+  role="radiogroup"
+  aria-labelledby="{{ group_id }}-label"
+>
+  {% for option in options %}
+    {% assign trimmed_option = option | strip %}
+    <label class="radio-item" for="{{ group_id }}-{{ forloop.index }}">
+      <input
+        id="{{ group_id }}-{{ forloop.index }}"
+        class="radio-input"
+        type="radio"
+        name="{{ radio_name }}"
+        value="{{ trimmed_option }}"
+        {% if trimmed_option == selected %}checked{% endif %}
+      />
+      <span>{{ trimmed_option }}</span>
+    </label>
+  {% endfor %}
+</div>
