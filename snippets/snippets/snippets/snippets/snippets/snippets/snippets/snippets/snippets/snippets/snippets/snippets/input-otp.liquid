@@ -1,0 +1,108 @@
+{% comment %}
+  INPUT OTP
+  ----------
+  Liquid equivalent of the OTP input component (multi-digit verification code).
+  Supports visual grouping and separators, with optional auto-advance behavior.
+
+  Usage:
+    {% render 'input-otp',
+      id: 'verification-code',
+      length: 6,
+      separator_every: 3
+    %}
+{% endcomment %}
+
+{% assign otp_id = id | default: 'otp-' | append: section.id %}
+{% assign otp_length = length | default: 6 %}
+{% assign separator_every = separator_every | default: 0 %}
+
+<style>
+  .otp-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .otp-group {
+    display: flex;
+    gap: 4px;
+  }
+  .otp-slot {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(0,0,0,0.15);
+    border-radius: 6px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 500;
+    background: #fff;
+    transition: all 0.15s ease;
+  }
+  .otp-slot:focus {
+    border-color: #000;
+    outline: none;
+    box-shadow: 0 0 0 1.5px #000;
+  }
+  .otp-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    color: rgba(0,0,0,0.4);
+  }
+  .otp-slot.error {
+    border-color: #b00020;
+  }
+  .otp-slot::placeholder {
+    color: rgba(0,0,0,0.25);
+  }
+</style>
+
+<div id="{{ otp_id }}" class="otp-container">
+  <div class="otp-group">
+    {% for i in (1..otp_length) %}
+      <input
+        type="text"
+        inputmode="numeric"
+        maxlength="1"
+        class="otp-slot"
+        placeholder="•"
+        data-index="{{ i }}"
+      >
+      {% if separator_every != 0 and i != otp_length and i % separator_every == 0 %}
+        <div class="otp-separator">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12h12" />
+          </svg>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('{{ otp_id }}');
+    const inputs = wrapper.querySelectorAll('.otp-slot');
+
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', e => {
+        const value = e.target.value.replace(/\D/g, '').slice(0, 1);
+        e.target.value = value;
+        if (value && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+          inputs[index - 1].focus();
+        }
+      });
+
+      input.addEventListener('focus', () => {
+        input.select();
+      });
+    });
+  });
+</script>
