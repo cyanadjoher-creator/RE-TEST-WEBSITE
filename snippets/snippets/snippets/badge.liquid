@@ -1,0 +1,64 @@
+{% comment %}
+  BADGE
+  -----
+  Liquid version of the React Badge component.
+  Supports four variants: default, secondary, destructive, and outline.
+
+  Usage:
+    {% render 'badge', text: 'New', variant: 'default' %}
+    {% render 'badge', text: 'Sale', variant: 'destructive' %}
+    {% render 'badge', text: 'Limited', variant: 'secondary' %}
+    {% render 'badge', text: 'View All', variant: 'outline' %}
+{% endcomment %}
+
+{% assign type = variant | default: 'default' %}
+{% assign badge_text = text | default: 'Badge' %}
+
+<style>
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    line-height: 1.4;
+    transition: background .2s ease, color .2s ease;
+  }
+  .badge.default {
+    background: #111;
+    color: #fff;
+  }
+  .badge.default:hover {
+    background: rgba(0,0,0,0.8);
+  }
+  .badge.secondary {
+    background: #eaeaea;
+    color: #111;
+  }
+  .badge.secondary:hover {
+    background: #d5d5d5;
+  }
+  .badge.destructive {
+    background: #dc2626;
+    color: #fff;
+  }
+  .badge.destructive:hover {
+    background: #b91c1c;
+  }
+  .badge.outline {
+    border-color: rgba(0,0,0,0.2);
+    background: transparent;
+    color: #111;
+  }
+  .badge.outline:hover {
+    background: rgba(0,0,0,0.05);
+  }
+</style>
+
+<span class="badge {{ type }}">
+  {{ badge_text }}
+</span>
