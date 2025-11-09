@@ -1,0 +1,158 @@
+{% schema %}
+{
+  "name": "Home — BADSEKI",
+  "settings": [
+    { "type": "header", "content": "Hero" },
+    { "type": "select", "id": "hero_type", "label": "Type", "default": "video", "options": [
+      { "value": "video", "label": "Vidéo (URL/MP4/YouTube/Vimeo)" },
+      { "value": "image", "label": "Image" }
+    ]},
+    { "type": "video", "id": "hero_video", "label": "Vidéo (fichier Shopify)" },
+    { "type": "text", "id": "hero_video_url", "label": "URL vidéo externe (YouTube/Vimeo/MP4)", "default": "" },
+    { "type": "image_picker", "id": "hero_image", "label": "Image de couverture" },
+    { "type": "range", "id": "hero_ratio", "min": 20, "max": 75, "step": 1, "unit": "%", "label": "Ratio hauteur (pour le conteneur)", "default": 50 },
+
+    { "type": "header", "content": "Deux images côte à côte" },
+    { "type": "image_picker", "id": "left_image", "label": "Image gauche" },
+    { "type": "image_picker", "id": "right_image", "label": "Image droite" },
+    { "type": "url", "id": "left_link", "label": "Lien image gauche" },
+    { "type": "url", "id": "right_link", "label": "Lien image droite" },
+
+    { "type": "header", "content": "Grille produits" },
+    { "type": "collection", "id": "featured_collection", "label": "Collection à mettre en avant" },
+    { "type": "range", "id": "product_limit", "min": 1, "max": 24, "step": 1, "label": "Nombre de produits", "default": 8 },
+
+    { "type": "header", "content": "Bloc éditorial" },
+    { "type": "image_picker", "id": "editorial_image", "label": "Image éditoriale" },
+    { "type": "text", "id": "editorial_kicker", "label": "Kicker (petit titre)", "default": "FEATURED STORY" },
+    { "type": "text", "id": "editorial_title", "label": "Titre", "default": "LOREM IPSUM DOLOR SIT AMET" },
+    { "type": "textarea", "id": "editorial_excerpt", "label": "Extrait", "default": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+    { "type": "url", "id": "editorial_link", "label": "Lien « Read Article »" }
+  ],
+  "presets": [{ "name": "Home — BADSEKI" }]
+}
+{% endschema %}
+
+<div class="min-h-screen bg-white">
+  <!-- HERO -->
+  <section class="pt-16">
+    <div class="w-full relative overflow-hidden" style="aspect-ratio:16/8;">
+      {% if section.settings.hero_type == 'video' %}
+        {% if section.settings.hero_video != blank %}
+          {{ section.settings.hero_video | video_tag: autoplay: true, loop: true, muted: true, playsinline: true, class: 'w-full h-full object-cover' }}
+        {% elsif section.settings.hero_video_url != blank %}
+          {% assign url = section.settings.hero_video_url %}
+          {% if url contains 'youtube' or url contains 'youtu.be' %}
+            <iframe class="w-full h-full absolute inset-0" src="https://www.youtube.com/embed/{{ url | split: 'v=' | last | split: '&' | first }}?autoplay=1&mute=1&loop=1&playlist={{ url | split: 'v=' | last | split: '&' | first }}&controls=0&playsinline=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          {% elsif url contains 'vimeo' %}
+            <iframe class="w-full h-full absolute inset-0" src="https://player.vimeo.com/video/{{ url | split: '/' | last }}?background=1&autoplay=1&loop=1&muted=1&title=0&byline=0&portrait=0" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+          {% else %}
+            <video class="w-full h-full object-cover" autoplay muted loop playsinline>
+              <source src="{{ url }}" type="video/mp4">
+            </video>
+          {% endif %}
+        {% elsif section.settings.hero_image != blank %}
+          {{ section.settings.hero_image | image_url: width: 2400 | image_tag: class: 'w-full h-full object-cover' }}
+        {% else %}
+          <div class="w-full h-full bg-black flex items-center justify-center text-white/60 text-xs tracking-widest">VIDEO / IMAGE</div>
+        {% endif %}
+      {% else %}
+        {% if section.settings.hero_image != blank %}
+          {{ section.settings.hero_image | image_url: width: 2400 | image_tag: class: 'w-full h-full object-cover' }}
+        {% else %}
+          <div class="w-full h-full bg-black flex items-center justify-center text-white/60 text-xs tracking-widest">IMAGE HEADER</div>
+        {% endif %}
+      {% endif %}
+    </div>
+
+    <!-- Deux images -->
+    <div class="grid grid-cols-2 gap-1 mt-1">
+      <a {% if section.settings.left_link %}href="{{ section.settings.left_link }}"{% endif %} class="block">
+        <div class="w-full relative" style="aspect-ratio:1/1.2;">
+          {% if section.settings.left_image %}
+            {{ section.settings.left_image | image_url: width: 1400 | image_tag: class: 'w-full h-full object-cover' }}
+          {% else %}
+            <div class="absolute inset-0 bg-black flex items-center justify-center text-white/60 text-xs tracking-widest">IMAGE LEFT</div>
+          {% endif %}
+        </div>
+      </a>
+      <a {% if section.settings.right_link %}href="{{ section.settings.right_link }}"{% endif %} class="block">
+        <div class="w-full relative" style="aspect-ratio:1/1.2;">
+          {% if section.settings.right_image %}
+            {{ section.settings.right_image | image_url: width: 1400 | image_tag: class: 'w-full h-full object-cover' }}
+          {% else %}
+            <div class="absolute inset-0 bg-black flex items-center justify-center text-white/60 text-xs tracking-widest">IMAGE RIGHT</div>
+          {% endif %}
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- Grille produits -->
+  <section class="mt-20 px-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+      {% if section.settings.featured_collection %}
+        {% assign coll = collections[section.settings.featured_collection] %}
+        {% for product in coll.products limit: section.settings.product_limit %}
+          <div>
+            <a href="{{ product.url }}">
+              <div class="relative w-full" style="aspect-ratio:4/5;">
+                {% if product.featured_image %}
+                  {{ product.featured_image | image_url: width: 1200 | image_tag: class: 'w-full h-full object-cover' }}
+                {% else %}
+                  <div class="absolute inset-0 bg-black/5 flex items-center justify-center text-black/50 text-xs tracking-widest">IMAGE</div>
+                {% endif %}
+              </div>
+            </a>
+            <div class="mt-3">
+              <a href="{{ product.url }}" class="block uppercase" style="font-size:12px;letter-spacing:0.1em;font-weight:400">
+                {{ product.title }}
+              </a>
+              <div class="opacity-70" style="font-size:12px;letter-spacing:0.02em">
+                {{ product.price | money }}
+              </div>
+            </div>
+          </div>
+        {% else %}
+          <div class="col-span-4 text-center text-sm opacity-60">Aucun produit dans cette collection.</div>
+        {% endfor %}
+      {% else %}
+        {% for i in (1..8) %}
+          <div>
+            <div class="relative w-full" style="aspect-ratio:4/5;">
+              <div class="absolute inset-0 bg-black/5"></div>
+            </div>
+            <div class="mt-3">
+              <div class="uppercase" style="font-size:12px;letter-spacing:0.1em;font-weight:400">Produit Placeholder</div>
+              <div class="opacity-70" style="font-size:12px;letter-spacing:0.02em">€0,00</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Editorial -->
+  <section class="mt-20 px-6 mb-0">
+    <a {% if section.settings.editorial_link %}href="{{ section.settings.editorial_link }}"{% endif %} class="block group">
+      <div class="w-full relative overflow-hidden" style="aspect-ratio:16/9;">
+        {% if section.settings.editorial_image %}
+          {{ section.settings.editorial_image | image_url: width: 2400 | image_tag: class: 'w-full h-full object-cover transition-transform duration-700 group-hover:scale-105' }}
+        {% else %}
+          <div class="absolute inset-0 bg-black flex items-center justify-center text-white/60 text-xs tracking-widest">IMAGE</div>
+        {% endif %}
+      </div>
+      <div class="mt-4">
+        <div class="uppercase mb-2" style="font-size:11px;letter-spacing:0.1em;font-weight:400">
+          {{ section.settings.editorial_kicker }}
+        </div>
+        <h3 class="uppercase mb-2 group-hover:opacity-60 transition-opacity" style="font-size:18px;letter-spacing:0.05em;font-weight:400">
+          {{ section.settings.editorial_title }}
+        </h3>
+        <p class="opacity-70" style="font-size:14px;letter-spacing:0.02em;line-height:1.6">
+          {{ section.settings.editorial_excerpt }}
+        </p>
+      </div>
+    </a>
+  </section>
+</div>
