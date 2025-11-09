@@ -1,0 +1,134 @@
+{% comment %}
+  ALERT DIALOG
+  ------------
+  Converted from React (Radix UI) to native Shopify Liquid + HTML + CSS + vanilla JS.
+  Displays a modal dialog with a dark overlay, title, description, and action/cancel buttons.
+
+  Example usage:
+    {% render 'alert-dialog',
+      id: 'delete-confirm',
+      title: 'Delete product',
+      description: 'Are you sure you want to delete this item? This action cannot be undone.',
+      action_label: 'Delete',
+      cancel_label: 'Cancel'
+    %}
+{% endcomment %}
+
+<style>
+  .alert-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+    z-index: 50;
+  }
+  .alert-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .alert-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(.95);
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 8px;
+    max-width: 480px;
+    width: calc(100% - 2rem);
+    padding: 2rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    opacity: 0;
+    transition: all .25s ease;
+    z-index: 60;
+  }
+  .alert-dialog.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .alert-dialog-header {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    text-align: center;
+  }
+  .alert-dialog-title {
+    font-size: 18px;
+    font-weight: 600;
+  }
+  .alert-dialog-description {
+    font-size: 14px;
+    color: rgba(0,0,0,.7);
+    line-height: 1.6;
+  }
+  .alert-dialog-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .btn-alert {
+    padding: .6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background .2s ease;
+  }
+  .btn-alert-primary {
+    background:#000;
+    color:#fff;
+  }
+  .btn-alert-primary:hover { background:#222; }
+  .btn-alert-outline {
+    background:#fff;
+    color:#000;
+    border:1px solid rgba(0,0,0,.15);
+  }
+  .btn-alert-outline:hover { background:#f5f5f5; }
+</style>
+
+{% assign dialog_id = id | default: 'alert-dialog' %}
+
+<!-- Trigger -->
+<button
+  type="button"
+  class="btn-alert btn-alert-outline"
+  onclick="document.getElementById('{{ dialog_id }}-overlay').classList.add('active');document.getElementById('{{ dialog_id }}').classList.add('active');"
+>
+  {{ trigger_label | default: 'Open Dialog' }}
+</button>
+
+<!-- Overlay -->
+<div id="{{ dialog_id }}-overlay" class="alert-overlay" onclick="this.classList.remove('active');document.getElementById('{{ dialog_id }}').classList.remove('active');"></div>
+
+<!-- Dialog -->
+<div id="{{ dialog_id }}" class="alert-dialog" role="alertdialog" aria-modal="true">
+  <div class="alert-dialog-header">
+    <h3 class="alert-dialog-title">{{ title | default: 'Alert Title' }}</h3>
+    <p class="alert-dialog-description">
+      {{ description | default: 'This is an alert dialog. It requires user confirmation.' }}
+    </p>
+  </div>
+
+  <div class="alert-dialog-footer">
+    <button
+      type="button"
+      class="btn-alert btn-alert-outline"
+      onclick="document.getElementById('{{ dialog_id }}-overlay').classList.remove('active');document.getElementById('{{ dialog_id }}').classList.remove('active');"
+    >
+      {{ cancel_label | default: 'Cancel' }}
+    </button>
+    <button
+      type="button"
+      class="btn-alert btn-alert-primary"
+      onclick="document.getElementById('{{ dialog_id }}-overlay').classList.remove('active');document.getElementById('{{ dialog_id }}').classList.remove('active');"
+    >
+      {{ action_label | default: 'Confirm' }}
+    </button>
+  </div>
+</div>
