@@ -1,0 +1,176 @@
+{% comment %}
+  SIDEBAR COMPONENT (Shopify Liquid version)
+  ------------------------------------------
+  - Supports mobile + desktop
+  - Toggles open/collapsed state with animation
+  - Persists state via cookie (7 days)
+  - Keyboard shortcut: Ctrl/Cmd + B
+  - Optional positioning: left or right
+  - You can include navigation menus or content via `content` variable
+
+  Usage:
+  {% render 'sidebar',
+     id: 'shop-sidebar',
+     title: 'Navigation',
+     side: 'left',
+     content: '
+        <ul class="sidebar-menu">
+          <li><a href="/collections/all">All Products</a></li>
+          <li><a href="/collections/new">New Arrivals</a></li>
+          <li><a href="/pages/about">About Us</a></li>
+        </ul>
+     '
+  %}
+{% endcomment %}
+
+{% assign sidebar_id = id | default: 'sidebar-' | append: section.id %}
+{% assign side = side | default: 'left' %}
+{% assign title = title | default: 'Sidebar' %}
+{% assign content = content | default: '<p>Sidebar content here.</p>' %}
+
+<style>
+  :root {
+    --sidebar-width: 16rem;
+    --sidebar-width-mobile: 18rem;
+    --sidebar-bg: #fff;
+    --sidebar-color: #111;
+    --sidebar-border: rgba(0,0,0,0.1);
+  }
+
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 40;
+  }
+  .sidebar-overlay.active { opacity: 1; visibility: visible; }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    background: var(--sidebar-bg);
+    color: var(--sidebar-color);
+    border-right: 1px solid var(--sidebar-border);
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.35s ease;
+    z-index: 50;
+  }
+
+  .sidebar.right { right: 0; left: auto; border-right: none; border-left: 1px solid var(--sidebar-border); transform: translateX(100%); }
+  .sidebar.active.left { transform: translateX(0); }
+  .sidebar.active.right { transform: translateX(0); }
+
+  @media (max-width: 768px) {
+    .sidebar { width: var(--sidebar-width-mobile); }
+  }
+
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    font-weight: 600;
+    border-bottom: 1px solid var(--sidebar-border);
+  }
+
+  .sidebar-content {
+    padding: 1rem;
+  }
+
+  .sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .sidebar-menu li a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.25rem;
+    color: inherit;
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+  .sidebar-menu li a:hover {
+    background: rgba(0,0,0,0.05);
+  }
+
+  .sidebar-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    font-size: 1.25rem;
+  }
+  .sidebar-toggle-btn:focus { outline: 2px solid #000; outline-offset: 2px; }
+</style>
+
+<!-- Sidebar Trigger -->
+<button class="sidebar-toggle-btn" onclick="toggleSidebar('{{ sidebar_id }}')" aria-controls="{{ sidebar_id }}" aria-expanded="false" id="{{ sidebar_id }}-trigger">
+  &#9776;
+  <span class="sr-only">Toggle Sidebar</span>
+</button>
+
+<!-- Overlay -->
+<div id="{{ sidebar_id }}-overlay" class="sidebar-overlay" onclick="toggleSidebar('{{ sidebar_id }}')"></div>
+
+<!-- Sidebar -->
+<aside id="{{ sidebar_id }}" class="sidebar {{ side }}">
+  <div class="sidebar-header">
+    <span>{{ title }}</span>
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar('{{ sidebar_id }}')">&times;</button>
+  </div>
+  <div class="sidebar-content">
+    {{ content }}
+  </div>
+</aside>
+
+<script>
+  (function(){
+    const SIDEBAR_COOKIE = '{{ sidebar_id }}_state';
+    const MAX_AGE = 60*60*24*7;
+    const sidebar = document.getElementById('{{ sidebar_id }}');
+    const overlay = document.getElementById('{{ sidebar_id }}-overlay');
+    const trigger = document.getElementById('{{ sidebar_id }}-trigger');
+
+    function getCookie(name){
+      const match = document.cookie.match(new RegExp('(^| )'+name+'=([^;]+)'));
+      return match ? match[2] : null;
+    }
+    function setCookie(name, value){
+      document.cookie = name + '=' + value + ';path=/;max-age=' + MAX_AGE;
+    }
+
+    function toggleSidebar(id){
+      const isOpen = sidebar.classList.contains('active');
+      sidebar.classList.toggle('active', !isOpen);
+      overlay.classList.toggle('active', !isOpen);
+      trigger.setAttribute('aria-expanded', !isOpen);
+      setCookie(SIDEBAR_COOKIE, !isOpen);
+    }
+
+    // Restore last state
+    if (getCookie(SIDEBAR_COOKIE) === 'true') {
+      sidebar.classList.add('active');
+      overlay.classList.add('active');
+    }
+
+    // Keyboard shortcut: Ctrl/Cmd + B
+    document.addEventListener('keydown', e => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        toggleSidebar('{{ sidebar_id }}');
+      }
+    });
+
+    window.toggleSidebar = toggleSidebar;
+  })();
+</script>
