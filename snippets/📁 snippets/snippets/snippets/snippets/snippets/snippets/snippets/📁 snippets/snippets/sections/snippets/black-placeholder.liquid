@@ -1,0 +1,25 @@
+{% comment %}
+  BLACK PLACEHOLDER
+  -----------------
+  Equivalent of your React <BlackPlaceholder> component.
+
+  Props (Liquid version):
+  - class (string) → Tailwind or custom classes for container
+  - label (string) → Text inside placeholder (default: "IMAGE")
+  - aspect_ratio (string, optional) → "16/9", "4/5", etc.
+{% endcomment %}
+
+{% assign label = label | default: "IMAGE" %}
+{% assign aspect_ratio = aspect_ratio | default: "auto" %}
+
+<div 
+  class="bg-black flex items-center justify-center {{ class }}"
+  style="background-color:#000;aspect-ratio:{{ aspect_ratio }};"
+>
+  <div 
+    class="uppercase text-white"
+    style="font-size:12px;letter-spacing:0.1em;font-weight:300;opacity:0.6;"
+  >
+    {{ label }}
+  </div>
+</div>
