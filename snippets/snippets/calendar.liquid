@@ -1,0 +1,153 @@
+{% comment %}
+  CALENDAR
+  --------
+  Shopify Liquid version of the React DayPicker Calendar.
+  Simple, accessible monthly date picker with navigation arrows.
+
+  Usage:
+    {% render 'calendar' %}
+{% endcomment %}
+
+<style>
+  .calendar {
+    max-width: 320px;
+    border: 1px solid rgba(0,0,0,.1);
+    border-radius: 8px;
+    padding: 16px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  .calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .calendar-header button {
+    background: transparent;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: .6;
+    cursor: pointer;
+    transition: opacity .2s ease;
+  }
+  .calendar-header button:hover {
+    opacity: 1;
+  }
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    text-align: center;
+  }
+  .calendar-day {
+    padding: 6px 0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+  .calendar-day:hover {
+    background: rgba(0,0,0,.05);
+  }
+  .calendar-day.today {
+    background: #000;
+    color: #fff;
+  }
+  .calendar-day.disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+  .calendar-weekday {
+    font-size: 12px;
+    opacity: .6;
+    padding-bottom: 4px;
+  }
+</style>
+
+<div class="calendar" id="calendar-container">
+  <div class="calendar-header">
+    <button type="button" id="cal-prev" aria-label="Previous month">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </button>
+    <div id="cal-month" style="font-weight:500"></div>
+    <button type="button" id="cal-next" aria-label="Next month">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+      </svg>
+    </button>
+  </div>
+  <div class="calendar-grid" id="cal-weekdays"></div>
+  <div class="calendar-grid" id="cal-days"></div>
+</div>
+
+<script>
+  (function(){
+    const container = document.getElementById('calendar-container');
+    if(!container) return;
+    const monthEl = document.getElementById('cal-month');
+    const daysEl = document.getElementById('cal-days');
+    const weekdaysEl = document.getElementById('cal-weekdays');
+    const prevBtn = document.getElementById('cal-prev');
+    const nextBtn = document.getElementById('cal-next');
+    const weekdays = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    weekdays.forEach(d=>{
+      const el=document.createElement('div');
+      el.className='calendar-weekday';
+      el.textContent=d;
+      weekdaysEl.appendChild(el);
+    });
+
+    let today=new Date();
+    let currentMonth=today.getMonth();
+    let currentYear=today.getFullYear();
+
+    function renderCalendar(){
+      daysEl.innerHTML='';
+      const firstDay=new Date(currentYear,currentMonth,1);
+      const lastDay=new Date(currentYear,currentMonth+1,0);
+      const monthName=firstDay.toLocaleString('default',{month:'long'});
+      monthEl.textContent=`${monthName} ${currentYear}`;
+      const startDay=firstDay.getDay();
+      const totalDays=lastDay.getDate();
+      for(let i=0;i<startDay;i++){
+        const empty=document.createElement('div');
+        daysEl.appendChild(empty);
+      }
+      for(let d=1;d<=totalDays;d++){
+        const date=new Date(currentYear,currentMonth,d);
+        const el=document.createElement('div');
+        el.className='calendar-day';
+        el.textContent=d;
+        if(
+          date.getDate()===today.getDate() &&
+          date.getMonth()===today.getMonth() &&
+          date.getFullYear()===today.getFullYear()
+        ){
+          el.classList.add('today');
+        }
+        daysEl.appendChild(el);
+      }
+    }
+
+    prevBtn.addEventListener('click',()=>{
+      currentMonth--;
+      if(currentMonth<0){currentMonth=11;currentYear--;}
+      renderCalendar();
+    });
+    nextBtn.addEventListener('click',()=>{
+      currentMonth++;
+      if(currentMonth>11){currentMonth=0;currentYear++;}
+      renderCalendar();
+    });
+
+    renderCalendar();
+  })();
+</script>
