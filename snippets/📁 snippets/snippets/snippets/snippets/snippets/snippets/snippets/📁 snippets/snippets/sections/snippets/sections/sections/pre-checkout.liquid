@@ -1,0 +1,311 @@
+{% schema %}
+{
+  "name": "Pre-Checkout (multi-step)",
+  "settings": [
+    { "type": "text", "id": "back_url", "label": "URL retour panier", "default": "/cart" },
+    { "type": "checkbox", "id": "free_shipping_banner", "label": "Afficher bannière free shipping", "default": true },
+    { "type": "number", "id": "free_shipping_threshold", "label": "Seuil livraison offerte (€)", "default": 200 }
+  ]
+}
+{% endschema %}
+
+{% assign threshold_cents = section.settings.free_shipping_threshold | times: 100 %}
+{% assign qualifies_free = cart.items_subtotal_price >= threshold_cents %}
+
+<div class="min-h-screen pt-16 bg-white" data-precheckout>
+  <div class="max-w-[1200px] mx-auto px-6 py-12">
+
+    <!-- Back -->
+    <a href="{{ section.settings.back_url | default: routes.cart_url }}"
+       class="flex items-center gap-2 mb-8 hover:opacity-60 transition-opacity uppercase tracking-wider"
+       style="font-size:11px;letter-spacing:0.15em">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      BACK TO CART
+    </a>
+
+    {% if section.settings.free_shipping_banner %}
+      <div class="mb-6 text-center text-xs uppercase tracking-wider">
+        {% if qualifies_free %}
+          <span>Free shipping applied</span>
+        {% else %}
+          <span>Free shipping over {{ cart.currency.symbol }}{{ section.settings.free_shipping_threshold }}</span>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <!-- Progress -->
+    <div class="mb-12" id="pc-progress">
+      <div class="flex items-center justify-center gap-4 mb-4">
+        {% for s in (1..4) %}
+          <div class="flex items-center">
+            <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors pc-step-dot"
+                 data-step="{{ s }}" style="font-size:12px">
+              {{ s }}
+            </div>
+            {% if s < 4 %}
+              <div class="w-16 h-0.5 mx-2 transition-colors pc-step-line" data-step="{{ s }}"></div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+      <div class="flex justify-center gap-16 uppercase tracking-wider opacity-60"
+           style="font-size:10px;letter-spacing:0.15em">
+        <span class="pc-step-label" data-step="1">Contact</span>
+        <span class="pc-step-label" data-step="2">Shipping</span>
+        <span class="pc-step-label" data-step="3">Payment</span>
+        <span class="pc-step-label" data-step="4">Complete</span>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-12">
+
+      <!-- Form -->
+      <div class="md:col-span-2">
+        <div class="bg-white p-8 border border-black/10">
+          <form id="pc-form" novalidate>
+            <!-- Step 1 -->
+            <div class="pc-step" data-step="1">
+              <h2 class="mb-6 tracking-tight" style="font-size:24px;font-weight:300">Contact Information</h2>
+              <div class="space-y-4">
+                <div>
+                  <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Email</label>
+                  <input type="email" name="email"
+                         class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors"
+                         style="font-size:13px" required>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="pc-step hidden" data-step="2">
+              <h2 class="mb-6 tracking-tight" style="font-size:24px;font-weight:300">Shipping Address</h2>
+              <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">First Name</label>
+                    <input type="text" name="firstName" class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors" style="font-size:13px" required>
+                  </div>
+                  <div>
+                    <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Last Name</label>
+                    <input type="text" name="lastName" class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors" style="font-size:13px" required>
+                  </div>
+                </div>
+                <div>
+                  <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Address</label>
+                  <input type="text" name="address" class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors" style="font-size:13px" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">City</label>
+                    <input type="text" name="city" class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors" style="font-size:13px" required>
+                  </div>
+                  <div>
+                    <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Postal Code</label>
+                    <input type="text" name="postalCode" class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors" style="font-size:13px" required>
+                  </div>
+                </div>
+                <div>
+                  <label class="block mb-2 uppercase tracking-wider" style="font-size:11px;letter-spacing:0.15em">Country</label>
+                  <select name="country" class="w-full px-4 py-3 border border-black/20 focus:border-black focus:outline-none transition-colors" style="font-size:13px" required>
+                    <option value="">Select Country</option>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="France">France</option>
+                    <option value="Japan">Japan</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 (Payment placeholder) -->
+            <div class="pc-step hidden" data-step="3">
+              <h2 class="mb-6 tracking-tight" style="font-size:24px;font-weight:300">Payment</h2>
+              <div class="space-y-4">
+                <p class="text-sm opacity-70">
+                  Payment details are securely collected on the Shopify checkout.
+                </p>
+                <ul class="text-sm list-disc pl-5 opacity-70">
+                  <li>Credit/Debit cards</li>
+                  <li>Apple Pay / Google Pay (si activés)</li>
+                  <li>PayPal (si activé)</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Step 4 (Complete) -->
+            <div class="pc-step hidden text-center py-12" data-step="4">
+              <div class="w-16 h-16 bg-black rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M20 6L9 17l-5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <h2 class="mb-4 tracking-tight" style="font-size:32px;font-weight:300">Order Complete</h2>
+              <p class="mb-8 opacity-60" style="font-size:14px">Redirecting to checkout…</p>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex gap-4 mt-8 pt-8 border-t border-black/10" id="pc-controls">
+              <button type="button" class="px-8 py-3 border border-black hover:bg-black hover:text-white transition-colors uppercase tracking-wider pc-back hidden"
+                      style="font-size:11px;letter-spacing:0.15em">Back</button>
+              <button type="button" class="flex-1 px-8 py-3 bg-black text-white hover:bg-black/80 transition-colors uppercase tracking-wider pc-next"
+                      style="font-size:11px;letter-spacing:0.15em">Continue</button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="md:col-span-1">
+        <div class="bg-white border border-black/10 p-8 sticky top-24" id="pc-summary">
+          <h3 class="uppercase tracking-wider mb-6" style="font-size:11px;letter-spacing:0.15em">Order Summary</h3>
+
+          {% if cart.item_count == 0 %}
+            <p class="text-sm opacity-70">Your cart is empty.</p>
+          {% else %}
+            <div class="space-y-4 mb-6 pb-6 border-b border-black/10">
+              {% for item in cart.items %}
+                <div class="flex justify-between" style="font-size:13px">
+                  <div class="pr-4">
+                    <div>{{ item.product.title }}</div>
+                    <div class="opacity-60">Qty: {{ item.quantity }}</div>
+                  </div>
+                  <div>{{ item.final_line_price | money }}</div>
+                </div>
+              {% endfor %}
+            </div>
+
+            <div class="space-y-3 mb-6 pb-6 border-b border-black/10">
+              <div class="flex justify-between" style="font-size:13px">
+                <span class="opacity-60">Subtotal</span>
+                <span>{{ cart.items_subtotal_price | money }}</span>
+              </div>
+              <div class="flex justify-between" style="font-size:13px">
+                <span class="opacity-60">Shipping</span>
+                <span>{% if qualifies_free %}Free{% else %}Calculated at checkout{% endif %}</span>
+              </div>
+            </div>
+
+            <div class="flex justify-between" style="font-size:16px">
+              <span>Total (pre-tax/ship)</span>
+              <span>{{ cart.items_subtotal_price | money }}</span>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var root = document.querySelector('[data-precheckout]');
+  if (!root) return;
+
+  var step = 1;
+  var maxStep = 4;
+  var form = root.querySelector('#pc-form');
+  var btnNext = root.querySelector('.pc-next');
+  var btnBack = root.querySelector('.pc-back');
+
+  function showStep(n){
+    step = n;
+    root.querySelectorAll('.pc-step').forEach(function(s){
+      s.classList.toggle('hidden', s.getAttribute('data-step') != String(step));
+    });
+
+    // Buttons
+    btnBack.classList.toggle('hidden', step === 1 || step === 4);
+    btnNext.textContent = (step === 3) ? 'Place Order' : 'Continue';
+    if (step === 4) {
+      btnNext.classList.add('hidden');
+    } else {
+      btnNext.classList.remove('hidden');
+    }
+
+    // Progress UI
+    root.querySelectorAll('.pc-step-dot').forEach(function(dot){
+      var s = parseInt(dot.getAttribute('data-step'),10);
+      if (s < step) {
+        dot.style.backgroundColor = '#000';
+        dot.style.color = '#fff';
+        dot.style.borderColor = '#000';
+        dot.textContent = '✓';
+      } else if (s === step) {
+        dot.style.backgroundColor = '#000';
+        dot.style.color = '#fff';
+        dot.style.borderColor = '#000';
+        dot.textContent = s;
+      } else {
+        dot.style.backgroundColor = 'transparent';
+        dot.style.color = 'rgba(0,0,0,0.2)';
+        dot.style.borderColor = 'rgba(0,0,0,0.2)';
+        dot.textContent = s;
+      }
+    });
+    root.querySelectorAll('.pc-step-line').forEach(function(line){
+      var s = parseInt(line.getAttribute('data-step'),10);
+      line.style.backgroundColor = (s < step) ? '#000' : 'rgba(0,0,0,0.2)';
+    });
+  }
+
+  function validateStep(){
+    if (step === 1) {
+      var email = form.querySelector('input[name="email"]');
+      return email && email.value.trim().length > 3 && email.checkValidity();
+    }
+    if (step === 2) {
+      var req = ['firstName','lastName','address','city','postalCode','country'];
+      return req.every(function(n){
+        var el = form.querySelector('[name="'+n+'"]');
+        return el && el.value.trim().length > 0;
+      });
+    }
+    return true;
+  }
+
+  function saveAttributes(){
+    // On enregistre les champs en cart.attributes (visible dans l’admin & utilisable en order notes)
+    var payload = {
+      attributes: {
+        '_precheckout_email': form.email?.value || '',
+        '_precheckout_firstName': form.firstName?.value || '',
+        '_precheckout_lastName': form.lastName?.value || '',
+        '_precheckout_address': form.address?.value || '',
+        '_precheckout_city': form.city?.value || '',
+        '_precheckout_postalCode': form.postalCode?.value || '',
+        '_precheckout_country': form.country?.value || ''
+      }
+    };
+    return fetch('/cart/update.js', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    }).then(function(r){ return r.json(); }).catch(function(){});
+  }
+
+  btnNext.addEventListener('click', function(){
+    if (!validateStep()) {
+      // feedback minimal
+      alert('Please complete required fields.');
+      return;
+    }
+
+    if (step < 3) {
+      showStep(step + 1);
+      return;
+    }
+
+    // Step 3 -> save attributes then redirect to checkout
+    saveAttributes().finally(function(){
+      showStep(4);
+      window.location.href = "{{ routes.checkout_url }}";
+    });
+  });
+
+  btnBack.addEventListener('click', function(){
+    if (step > 1) showStep(step - 1);
+  });
+
+  showStep(1);
+})();
+</script>
