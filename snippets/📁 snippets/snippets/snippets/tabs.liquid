@@ -1,0 +1,134 @@
+{% comment %}
+  TABS COMPONENT (Shopify Liquid version)
+  ---------------------------------------
+  Reproduces the behavior and styling of Radix UI Tabs using plain Liquid/JS.
+
+  Usage:
+  {% render 'tabs',
+    tabs: "Details, Shipping, Returns",
+    contents: "This is the detail section.|Shipping usually takes 5 days.|We accept returns within 14 days."
+  %}
+{% endcomment %}
+
+{% assign tabs = tabs | split: ',' %}
+{% assign contents = contents | split: '|' %}
+{% assign class = class | default: '' %}
+
+<style>
+  .tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .tabs-list {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 3px;
+    height: 2.25rem;
+    border-radius: 0.75rem;
+    background-color: var(--tabs-bg, rgba(0,0,0,0.05));
+    color: var(--tabs-muted, rgba(0,0,0,0.6));
+  }
+
+  .tabs-trigger {
+    flex: 1;
+    border-radius: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: var(--tabs-fg, #111);
+  }
+
+  .tabs-trigger[data-state="active"] {
+    background-color: var(--tabs-active-bg, #fff);
+    color: var(--tabs-active-fg, #111);
+    border-color: var(--tabs-active-border, rgba(0,0,0,0.1));
+  }
+
+  .tabs-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--tabs-ring, rgba(100,150,255,0.4));
+  }
+
+  .tabs-trigger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .tabs-content {
+    display: none;
+    outline: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .tabs-content[data-state="active"] {
+    display: block;
+    opacity: 1;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .tabs-list {
+      background-color: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.6);
+    }
+    .tabs-trigger[data-state="active"] {
+      background-color: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+  }
+</style>
+
+<div class="tabs {{ class }}" data-slot="tabs" data-component="tabs">
+  <div class="tabs-list" data-slot="tabs-list">
+    {% for tab in tabs %}
+      <button
+        class="tabs-trigger"
+        type="button"
+        data-tab="{{ forloop.index0 }}"
+        data-state="{% if forloop.first %}active{% else %}inactive{% endif %}"
+      >
+        {{ tab | strip }}
+      </button>
+    {% endfor %}
+  </div>
+
+  {% for content in contents %}
+    <div
+      class="tabs-content"
+      data-tab-content="{{ forloop.index0 }}"
+      data-state="{% if forloop.first %}active{% else %}inactive{% endif %}"
+    >
+      {{ content | strip }}
+    </div>
+  {% endfor %}
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('[data-component="tabs"]').forEach((tabsEl) => {
+      const triggers = tabsEl.querySelectorAll(".tabs-trigger");
+      const contents = tabsEl.querySelectorAll(".tabs-content");
+
+      triggers.forEach((trigger) => {
+        trigger.addEventListener("click", () => {
+          const tabId = trigger.dataset.tab;
+
+          triggers.forEach((t) => t.setAttribute("data-state", "inactive"));
+          contents.forEach((c) => c.setAttribute("data-state", "inactive"));
+
+          trigger.setAttribute("data-state", "active");
+          tabsEl
+            .querySelector(`[data-tab-content="${tabId}"]`)
+            .setAttribute("data-state", "active");
+        });
+      });
+    });
+  });
+</script>
