@@ -1,0 +1,138 @@
+{% comment %}
+  DROPDOWN MENU
+  -------------
+  Shopify Liquid equivalent of the Radix DropdownMenu component.
+  Simple, accessible dropdown triggered by a button or icon.
+
+  Usage:
+    {% render 'dropdown-menu',
+      id: 'account-menu',
+      trigger_label: 'Open Menu',
+      items: '[{"label":"Profile","shortcut":"⌘P"},{"label":"Settings","shortcut":"⌘S"},{"type":"separator"},{"label":"Log out","variant":"destructive","shortcut":"⇧⌘Q"}]'
+    %}
+{% endcomment %}
+
+{% assign dropdown_id = id | default: 'dropdown-' | append: section.id %}
+{% assign trigger_label = trigger_label | default: 'Open Menu' %}
+{% assign items_json = items | default: '[]' | parse_json %}
+
+<style>
+  .dropdown-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 14px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: #fff;
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background .2s ease;
+  }
+  .dropdown-trigger:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .dropdown-menu {
+    position: absolute;
+    min-width: 160px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    padding: 4px 0;
+    z-index: 1000;
+    display: none;
+  }
+  .dropdown-menu.open {
+    display: block;
+  }
+  .dropdown-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .dropdown-item:hover {
+    background: rgba(0,0,0,0.05);
+  }
+  .dropdown-item.destructive {
+    color: #b00020;
+  }
+  .dropdown-item.destructive:hover {
+    background: rgba(255,0,0,0.05);
+  }
+  .dropdown-shortcut {
+    font-size: 12px;
+    color: rgba(0,0,0,0.5);
+  }
+  .dropdown-separator {
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+    margin: 4px 0;
+  }
+</style>
+
+<div class="dropdown-wrapper" id="{{ dropdown_id }}" style="position: relative;">
+  <button class="dropdown-trigger" data-trigger aria-haspopup="menu" aria-expanded="false">
+    {{ trigger_label }}
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" width="16" height="16">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </button>
+
+  <div class="dropdown-menu" role="menu" data-menu>
+    {% for item in items_json %}
+      {% if item.type == 'separator' %}
+        <div class="dropdown-separator"></div>
+      {% else %}
+        <div class="dropdown-item {% if item.variant == 'destructive' %}destructive{% endif %}" role="menuitem">
+          <span>{{ item.label }}</span>
+          {% if item.shortcut %}
+            <span class="dropdown-shortcut">{{ item.shortcut }}</span>
+          {% endif %}
+        </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const wrapper = document.getElementById('{{ dropdown_id }}');
+    const trigger = wrapper.querySelector('[data-trigger]');
+    const menu = wrapper.querySelector('[data-menu]');
+    let open = false;
+
+    function toggleMenu() {
+      open = !open;
+      menu.classList.toggle('open', open);
+      trigger.setAttribute('aria-expanded', open);
+    }
+
+    function closeMenu() {
+      open = false;
+      menu.classList.remove('open');
+      trigger.setAttribute('aria-expanded', 'false');
+    }
+
+    trigger.addEventListener('click', function(e) {
+      e.stopPropagation();
+      toggleMenu();
+    });
+
+    document.addEventListener('click', function(e) {
+      if (open && !wrapper.contains(e.target)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && open) {
+        closeMenu();
+      }
+    });
+  });
+</script>
