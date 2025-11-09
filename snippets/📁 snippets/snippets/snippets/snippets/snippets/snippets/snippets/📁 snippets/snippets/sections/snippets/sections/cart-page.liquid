@@ -1,0 +1,276 @@
+{% schema %}
+{
+  "name": "Cart Page",
+  "settings": [
+    {
+      "type": "url",
+      "id": "continue_url",
+      "label": "URL — Continuer vos achats",
+      "default": "/collections/all"
+    },
+    {
+      "type": "number",
+      "id": "free_shipping_threshold_eur",
+      "label": "Seuil livraison offerte (€)",
+      "default": 200
+    },
+    {
+      "type": "text",
+      "id": "currency_symbol",
+      "label": "Symbole devise",
+      "default": "€"
+    }
+  ]
+}
+{% endschema %}
+
+{% assign threshold_eur = section.settings.free_shipping_threshold_eur | default: 200 %}
+{% assign threshold_cents = threshold_eur | times: 100 %}
+{% assign currency_symbol = section.settings.currency_symbol | default: "€" %}
+{% assign subtotal_cents = cart.items_subtotal_price %}
+{% assign qualifies_free = subtotal_cents >= threshold_cents %}
+
+<div class="min-h-screen bg-white pt-16">
+  <div class="px-6 py-8">
+    <!-- Back / Continue -->
+    <a
+      href="{{ section.settings.continue_url | default: routes.all_products_collection_url }}"
+      class="flex items-center gap-2 mb-8 hover:opacity-60 transition-opacity uppercase"
+      style="font-size:12px;letter-spacing:0.05em;font-weight:400"
+    >
+      <!-- ChevronLeft icon (SVG inline pour éviter dépendances) -->
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" class="inline-block">
+        <path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      CONTINUE SHOPPING
+    </a>
+
+    <div class="grid lg:grid-cols-3 gap-12">
+      <!-- Cart Items -->
+      <div class="lg:col-span-2">
+        <h1 class="uppercase mb-8" style="font-size:24px;letter-spacing:0.05em;font-weight:400">
+          SHOPPING CART ({{ cart.item_count }})
+        </h1>
+
+        {% if cart.item_count == 0 %}
+          <div class="text-center py-20">
+            <p class="opacity-60 mb-6" style="font-size:14px;letter-spacing:0.02em">Your cart is empty</p>
+            <a
+              href="{{ section.settings.continue_url | default: routes.all_products_collection_url }}"
+              class="bg-black text-white px-8 py-3 uppercase hover:bg-black/80 transition-colors"
+              style="font-size:12px;letter-spacing:0.1em"
+            >
+              SHOP NOW
+            </a>
+          </div>
+        {% else %}
+          <div id="cart-items" class="space-y-6">
+            {% for item in cart.items %}
+              <div class="flex gap-4 pb-6 border-b border-black/20" data-line="{{ forloop.index }}">
+                <div class="w-24 flex-shrink-0">
+                  {% if item.image %}
+                    <img
+                      src="{{ item.image | image_url: width: 300 }}"
+                      alt="{{ item.image.alt | escape }}"
+                      class="w-full"
+                      style="aspect-ratio:3/4;object-fit:cover"
+                    >
+                  {% else %}
+                    <div class="bg-black flex items-center justify-center w-full" style="aspect-ratio:3/4">
+                      <div class="uppercase text-white" style="font-size:12px;letter-spacing:0.1em;font-weight:300;opacity:0.6">IMAGE</div>
+                    </div>
+                  {% endif %}
+                </div>
+
+                <div class="flex-1">
+                  <div class="flex justify-between mb-2">
+                    <h3 class="uppercase" style="font-size:14px;letter-spacing:0.05em;font-weight:400">
+                      {{ item.product.title }}
+                    </h3>
+                    <button
+                      type="button"
+                      class="hover:opacity-60 transition-opacity js-remove-item"
+                      data-line="{{ forloop.index }}"
+                      aria-label="Remove item"
+                    >
+                      <!-- X icon -->
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+
+                  <!-- Options (Size / Color) -->
+                  {% assign size_opt = '' %}
+                  {% assign color_opt = '' %}
+                  {% if item.options_with_values.size > 0 %}
+                    {% for opt in item.options_with_values %}
+                      {% assign opt_name = opt.name | downcase %}
+                      {% if opt_name contains 'size' %}{% assign size_opt = opt.value %}{% endif %}
+                      {% if opt_name contains 'color' or opt_name contains 'couleur' %}{% assign color_opt = opt.value %}{% endif %}
+                    {% endfor %}
+                  {% endif %}
+
+                  <div class="opacity-60 mb-4" style="font-size:12px;letter-spacing:0.02em">
+                    {% if size_opt != '' %}SIZE: {{ size_opt }}{% endif %}
+                    {% if size_opt != '' and color_opt != '' %} • {% endif %}
+                    {% if color_opt != '' %}COLOR: {{ color_opt }}{% endif %}
+                  </div>
+
+                  <div class="flex justify-between items-center">
+                    <!-- Quantity controls -->
+                    <div class="flex items-center gap-3 border border-black/20">
+                      <button
+                        type="button"
+                        class="p-2 hover:bg-black/5 transition-colors js-qty"
+                        data-line="{{ forloop.index }}"
+                        data-delta="-1"
+                        aria-label="Decrease quantity"
+                      >
+                        <!-- Minus -->
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      </button>
+                      <span style="font-size:13px;letter-spacing:0.05em">{{ item.quantity }}</span>
+                      <button
+                        type="button"
+                        class="p-2 hover:bg-black/5 transition-colors js-qty"
+                        data-line="{{ forloop.index }}"
+                        data-delta="1"
+                        aria-label="Increase quantity"
+                      >
+                        <!-- Plus -->
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                      </button>
+                    </div>
+
+                    <div style="font-size:14px;letter-spacing:0.02em;font-weight:400">
+                      {{ item.final_line_price | money }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Order Summary -->
+      <div class="lg:sticky lg:top-24 h-fit">
+        <div class="border border-black/20 p-6" id="cart-summary">
+          <h2 class="uppercase mb-6" style="font-size:16px;letter-spacing:0.05em;font-weight:400">ORDER SUMMARY</h2>
+
+          <div class="space-y-4 mb-6 pb-6 border-b border-black/20">
+            <div class="flex justify-between" style="font-size:13px;letter-spacing:0.02em">
+              <span class="opacity-60">Subtotal</span>
+              <span>{{ cart.items_subtotal_price | money }}</span>
+            </div>
+
+            <!-- “Shipping” est inconnu avant adresse. On affiche un message conditionnel lié au seuil -->
+            <div class="flex justify-between" style="font-size:13px;letter-spacing:0.02em">
+              <span class="opacity-60">Shipping</span>
+              <span>
+                {% if qualifies_free %}
+                  Free
+                {% else %}
+                  Calculated at checkout
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <!-- Total affiché = subtotal ici (Shopify calculera vrai total au checkout) -->
+          <div class="flex justify-between mb-6" style="font-size:15px;letter-spacing:0.02em;font-weight:400">
+            <span>Total</span>
+            <span>{{ cart.items_subtotal_price | money }}</span>
+          </div>
+
+          {% if cart.item_count > 0 %}
+            <a
+              href="{{ routes.checkout_url }}"
+              class="w-full block text-center bg-black text-white py-4 uppercase hover:bg-black/80 transition-colors"
+              style="font-size:14px;letter-spacing:0.1em;font-weight:400"
+            >
+              CHECKOUT
+            </a>
+          {% else %}
+            <button
+              disabled
+              class="w-full bg-black text-white py-4 uppercase transition-colors opacity-40 cursor-not-allowed"
+              style="font-size:14px;letter-spacing:0.1em;font-weight:400"
+            >
+              CHECKOUT
+            </button>
+          {% endif %}
+
+          <p class="mt-4 text-center opacity-60" style="font-size:11px;letter-spacing:0.02em">
+            Free shipping on orders over {{ currency_symbol }}{{ threshold_eur }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Minimal AJAX logic for +/- and remove -->
+<script>
+  (function() {
+    function updateCart(payload) {
+      return fetch('{{ routes.cart_change_url }}.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      }).then(function(r){ return r.json(); });
+    }
+
+    function renderAfterChange(cartJson) {
+      // Reload the section to keep it dead-simple & robust (no client-side templating drift)
+      const url = new URL(window.location.href);
+      url.searchParams.set('section_id', {{ section.id | json }});
+      fetch(url.toString(), { headers: { 'Accept': 'text/html' } })
+        .then(r => r.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const fresh = doc.querySelector('[data-section-id="{{ section.id }}"]') || doc.body;
+          const current = document.querySelector('[data-section-id="{{ section.id }}"]') || document.body;
+          current.innerHTML = fresh.innerHTML;
+          attach(); // rebind
+        });
+    }
+
+    function attach() {
+      document.querySelectorAll('.js-qty').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var line = parseInt(this.getAttribute('data-line'), 10);
+          var delta = parseInt(this.getAttribute('data-delta'), 10);
+
+          // Current qty in DOM:
+          var lineRow = this.closest('[data-line]');
+          var qtyText = lineRow && lineRow.querySelector('span[style*="letter-spacing:0.05em"]');
+          var currentQty = qtyText ? parseInt(qtyText.textContent.trim(), 10) : 1;
+          var newQty = Math.max(1, currentQty + delta);
+
+          updateCart({ line: line, quantity: newQty }).then(renderAfterChange);
+        });
+      });
+
+      document.querySelectorAll('.js-remove-item').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var line = parseInt(this.getAttribute('data-line'), 10);
+          updateCart({ line: line, quantity: 0 }).then(renderAfterChange);
+        });
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', attach);
+  })();
+</script>
+
+<!-- Wrap section root with data-section-id to enable simple re-render -->
+<script>
+  // ensure wrapper attr
+  (function(){
+    var container = document.currentScript.closest('section, div');
+    if (container) container.setAttribute('data-section-id', {{ section.id | json }});
+  })();
+</script>
